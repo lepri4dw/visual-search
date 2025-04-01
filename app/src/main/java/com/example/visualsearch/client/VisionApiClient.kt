@@ -16,7 +16,8 @@ class VisionApiClient(private val context: Context) {
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
     interface VisionApiListener {
-        fun onSuccess(labels: List<String>)
+        fun onSuccess(labels: List<String>, imageResponse: AnnotateImageResponse)
+        fun onSuccess(labels: List<String>) // Оставляем для обратной совместимости
         fun onError(e: Exception)
     }
 
@@ -76,9 +77,11 @@ class VisionApiClient(private val context: Context) {
                     // Log the formatted output
                     Log.d(TAG, formatLogOutput(imageResponse))
 
-                    // Still extract labels for backward compatibility
+                    // Extract labels for backward compatibility
                     val labels = imageResponse.labelAnnotationsList.map { it.description }
-                    listener.onSuccess(labels)
+
+                    // Передаем полный ответ для более детального отображения
+                    listener.onSuccess(labels, imageResponse)
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Error analyzing image", e)

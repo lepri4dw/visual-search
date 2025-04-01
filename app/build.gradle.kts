@@ -100,4 +100,11 @@ dependencies {
 
     // For material design components
     implementation("com.google.android.material:material:1.8.0")
+
+    // Glide для работы с изображениями
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+
+    // Permissions
+    implementation("com.karumi:dexter:6.2.3")
 }
