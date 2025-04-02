@@ -1,10 +1,6 @@
 package com.example.visualsearch.remote.gemini
 
 import android.util.Log
-import com.example.visualsearch.remote.gemini.GeminiRequest
-import com.example.visualsearch.remote.gemini.GeminiResponse
-import com.example.visualsearch.remote.gemini.GeminiService
-import com.example.visualsearch.remote.gemini.SearchQuery
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,7 +29,6 @@ class GeminiApiClient(private val apiKey: String) {
         fun onError(e: Exception)
     }
 
-    // Метод для получения поискового запроса на основе тегов
     fun getSearchQuery(
         logoDescriptions: List<Pair<String, Float>> = emptyList(),
         labels: List<Pair<String, Float>> = emptyList(),
@@ -59,7 +54,6 @@ class GeminiApiClient(private val apiKey: String) {
                         listener.onSuccess(searchQuery)
                     } catch (e: Exception) {
                         Log.e(TAG, "Ошибка при обработке ответа Gemini: ${e.message}")
-                        // В случае ошибки создаем базовый объект поиска на основе имеющихся тегов
                         val fallbackQuery = createFallbackSearchQuery(logoDescriptions, labels, textDescriptions, dominantColors)
                         listener.onSuccess(fallbackQuery)
                     }
@@ -84,7 +78,6 @@ class GeminiApiClient(private val apiKey: String) {
         })
     }
 
-    // Создание промпта для Gemini
     private fun buildSearchPrompt(
         logoDescriptions: List<Pair<String, Float>>,
         labels: List<Pair<String, Float>>,
@@ -94,9 +87,8 @@ class GeminiApiClient(private val apiKey: String) {
         val sb = StringBuilder()
 
         sb.append("На основе следующих тегов и описаний, определи, какой именно товар на фотографии, ")
-        sb.append("и сформируй оптимальный поисковый запрос для его поиска на маркетплейсах Ozon и Wildberries.\n\n")
+        sb.append("и сформируй оптимальный поисковый запрос для его поиска на маркетплейсах.\n\n")
 
-        // Добавляем информацию о логотипах
         if (logoDescriptions.isNotEmpty()) {
             sb.append("Логотипы (с оценкой достоверности):\n")
             logoDescriptions.forEach { (desc, score) ->
@@ -105,7 +97,6 @@ class GeminiApiClient(private val apiKey: String) {
             sb.append("\n")
         }
 
-        // Добавляем информацию о метках/лейблах
         if (labels.isNotEmpty()) {
             sb.append("Метки (с оценкой достоверности):\n")
             labels.forEach { (desc, score) ->
@@ -114,7 +105,6 @@ class GeminiApiClient(private val apiKey: String) {
             sb.append("\n")
         }
 
-        // Добавляем информацию о тексте на изображении
         if (textDescriptions.isNotEmpty()) {
             sb.append("Текст на изображении:\n")
             textDescriptions.forEach { text ->
@@ -123,7 +113,6 @@ class GeminiApiClient(private val apiKey: String) {
             sb.append("\n")
         }
 
-        // Добавляем информацию о доминирующих цветах
         if (dominantColors.isNotEmpty()) {
             sb.append("Доминирующие цвета (RGB):\n")
             dominantColors.forEachIndexed { index, (r, g, b) ->
@@ -133,23 +122,24 @@ class GeminiApiClient(private val apiKey: String) {
             sb.append("\n")
         }
 
-        sb.append("Важно: Внимательно анализируй все метки. Если есть метки, указывающие на конкретный тип товара ")
-        sb.append(", они имеют приоритет перед общими категориями ")
-        sb.append("типа 'Gadget' или 'Electronics'. Если метки указывают на обувь, одежду, аксессуары или игрушки, ")
-        sb.append("то это не электроника.\n\n")
+        sb.append("Важно: Определи тип товара максимально точно. Когда определяешь тип товара:\n")
+        sb.append("1. Не объединяй товары в общие категории, указывай конкретный тип (например, 'Очки', 'Сумка', 'Кубик Рубика')\n")
+        sb.append("2. Если тип товара не очевиден из меток, логически определи его на основе бренда или других признаков\n")
+        sb.append("3. Не используй материалы, цвета или общие категории (например, 'Silver', 'Plastic', 'Carbon fibers', 'Electronics', 'Gadget') как тип товара\n\n")
 
-        sb.append("Обрати особое внимание на текст изображения - он может содержать название модели или бренда. ")
-        sb.append("Игнорируй бессмысленные последовательности букв и цифр, но используй осмысленные слова.\n\n")
+        sb.append("Обрати особое внимание на текст изображения - он часто содержит название модели или бренда. ")
+        sb.append("Используй только релевантную информацию для поиска - избегай включения случайных слов, материалов, ")
+        sb.append("и описательных терминов, которые не помогают при поиске конкретного товара.\n\n")
 
-        sb.append("Сформируй точный и лаконичный поисковый запрос, который наилучшим образом описывает товар ")
-        sb.append("и поможет найти его на маркетплейсах. Включи название бренда (если определено), ")
-        sb.append("тип продукта, ключевые характеристики и основной цвет товара. ")
-        sb.append("Не добавляй в запрос слова \"купить\", \"заказать\" и подобные. ")
-        sb.append("Если это возможно, определи конкретную модель устройства. ")
+        sb.append("Сформируй четкий и лаконичный поисковый запрос, который наилучшим образом описывает товар. ")
+        sb.append("Включи название бренда (если определено), тип продукта и модель. ")
+        sb.append("Цвет указывай только если он важен для идентификации товара. ")
+        sb.append("Убери из запроса лишние слова и технические термины, не относящиеся к поиску.\n\n")
+
         sb.append("Ответь в следующем формате без дополнительных комментариев:\n\n")
 
-        sb.append("Поисковый запрос: [короткий и точный запрос с указанием цвета, если он значим]\n")
-        sb.append("Тип товара: [общая категория товара]\n")
+        sb.append("Поисковый запрос: [короткий и точный запрос]\n")
+        sb.append("Тип товара: [конкретный тип товара, а не категория или материал]\n")
         sb.append("Название/Модель: [если определяется конкретная модель или название]\n")
         sb.append("Бренд: [если определяется бренд]\n")
         sb.append("Цвет: [основной цвет товара]\n")
@@ -157,7 +147,6 @@ class GeminiApiClient(private val apiKey: String) {
         return sb.toString()
     }
 
-    // Парсинг ответа от Gemini
     private fun parseGeminiResponse(text: String): SearchQuery {
         var searchQuery = ""
         var productType = ""
@@ -184,35 +173,25 @@ class GeminiApiClient(private val apiKey: String) {
         return SearchQuery(searchQuery, productType, modelName, brand, color)
     }
 
-    // Создание резервного поискового запроса в случае ошибки
     private fun createFallbackSearchQuery(
         logoDescriptions: List<Pair<String, Float>>,
         labels: List<Pair<String, Float>>,
         textDescriptions: List<String>,
         dominantColors: List<Triple<Int, Int, Int>>
     ): SearchQuery {
-        // Получаем бренд из логотипов с высоким score или из текста
         val brand = logoDescriptions.firstOrNull { it.second > 0.8 }?.first ?:
-        textDescriptions.firstOrNull { it.length > 2 } ?: ""
+        extractBrandFromText(textDescriptions)
 
-        // Определяем категорию товара на основе меток
-        val isFootwearOrClothing = labels.any {
-            it.first.lowercase().matches(Regex(".*(shoe|footwear|sneaker|clothing|apparel|bag|handbag|fashion).*"))
-        }
-
-        val isToy = labels.any {
-            it.first.lowercase().matches(Regex(".*(toy|puzzle|game|rubik).*"))
+        val specificProductLabels = labels.filter {
+            !isGenericLabel(it.first) && it.second > 0.7
         }
 
         val productType = when {
-            isFootwearOrClothing -> "Обувь и одежда"
-            isToy -> "Игрушки и игры"
-            else -> labels.firstOrNull {
-                it.first.matches(Regex(".*", RegexOption.IGNORE_CASE))
-            }?.first ?: "Товар"
+            specificProductLabels.isNotEmpty() -> specificProductLabels.first().first
+            labels.isNotEmpty() -> labels.first().first
+            else -> "Товар"
         }
 
-        // Определяем основной цвет
         val dominantColor = if (dominantColors.isNotEmpty()) {
             rgbToColorName(
                 dominantColors[0].first,
@@ -223,32 +202,67 @@ class GeminiApiClient(private val apiKey: String) {
             ""
         }
 
-        // Создаем базовый поисковый запрос
         val query = buildString {
             if (brand.isNotEmpty()) {
                 append("$brand ")
             }
 
-            // Берем первые 1-2 метки с высоким score, которые не являются брендом
-            val topLabels = labels
-                .filter { it.second > 0.7 && !it.first.equals(brand, ignoreCase = true) }
-                .sortedByDescending { it.second }
-                .take(2)
-                .map { it.first }
+            val modelNumber = extractModelFromText(textDescriptions, brand)
+            if (modelNumber.isNotEmpty()) {
+                append("$modelNumber ")
+            }
 
-            append(topLabels.joinToString(" "))
+            if (productType.isNotEmpty() && !brand.contains(productType, ignoreCase = true)) {
+                append("$productType ")
+            }
 
-            if (dominantColor.isNotEmpty()) {
-                append(" $dominantColor")
+            if (dominantColor.isNotEmpty() && !isColorRedundant(this.toString(), dominantColor)) {
+                append(dominantColor)
             }
         }.trim()
 
-        return SearchQuery(query, productType, "", brand, dominantColor)
+        return SearchQuery(query, productType, extractModelFromText(textDescriptions, brand), brand, dominantColor)
     }
 
-    // Преобразование RGB в название цвета
+    private fun extractBrandFromText(textDescriptions: List<String>): String {
+        for (text in textDescriptions) {
+            val words = text.split(" ", "-", "_")
+            for (word in words) {
+                val cleanWord = word.trim().replace(Regex("[^A-Za-z0-9]"), "")
+                if (cleanWord.length > 2 && !cleanWord.matches(Regex("^[0-9]+$"))) {
+                    return cleanWord
+                }
+            }
+        }
+        return ""
+    }
+
+    private fun extractModelFromText(textDescriptions: List<String>, brand: String): String {
+        for (text in textDescriptions) {
+            if (text.contains(Regex("[A-Z0-9]{5,}"))) {
+                return text.replace(brand, "", ignoreCase = true).trim()
+            }
+        }
+        return ""
+    }
+
+    private fun isGenericLabel(label: String): Boolean {
+        val genericTerms = listOf(
+            "gadget", "electronics", "device", "product", "item",
+            "plastic", "metal", "silver", "gold", "carbon", "fibers",
+            "packaging", "box", "container", "material"
+        )
+
+        return genericTerms.any {
+            label.lowercase().contains(it)
+        }
+    }
+
+    private fun isColorRedundant(query: String, color: String): Boolean {
+        return query.lowercase().contains(color.lowercase())
+    }
+
     private fun rgbToColorName(r: Int, g: Int, b: Int): String {
-        // Простая версия определения цвета по RGB
         return when {
             r > 200 && g > 200 && b > 200 -> "белый"
             r < 60 && g < 60 && b < 60 -> "черный"
