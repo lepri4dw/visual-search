@@ -1,12 +1,21 @@
 package com.example.visualsearch.remote.gemini
 
+import android.graphics.Bitmap
+import android.util.Base64
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class GeminiApiClient(private val apiKey: String) {
     private val service: GeminiService
@@ -17,10 +26,18 @@ class GeminiApiClient(private val apiKey: String) {
     }
 
     init {
+        val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+
         service = retrofit.create(GeminiService::class.java)
     }
 
@@ -29,122 +46,134 @@ class GeminiApiClient(private val apiKey: String) {
         fun onError(e: Exception)
     }
 
-    fun getSearchQuery(
-        logoDescriptions: List<Pair<String, Float>> = emptyList(),
-        labels: List<Pair<String, Float>> = emptyList(),
-        textDescriptions: List<String> = emptyList(),
-        dominantColors: List<Triple<Int, Int, Int>> = emptyList(),
-        listener: GeminiApiListener
-    ) {
-        val prompt = buildSearchPrompt(
-            logoDescriptions,
-            labels,
-            textDescriptions,
-            dominantColors
-        )
+    fun analyzeImage(bitmap: Bitmap, listener: GeminiApiListener) {
+        try {
+            // Convert bitmap to base64
+            val base64Image = bitmapToBase64(bitmap)
 
-        val request = GeminiRequest(prompt)
+            // Create the request body as JSON
+            val requestJson = buildImageAnalysisRequest(base64Image)
+            val requestBody = requestJson.toString()
+                .toRequestBody("application/json".toMediaTypeOrNull())
 
-        service.generateContent(apiKey, request).enqueue(object : Callback<GeminiResponse> {
-            override fun onResponse(call: Call<GeminiResponse>, response: Response<GeminiResponse>) {
-                if (response.isSuccessful && response.body() != null) {
-                    try {
-                        val text = response.body()?.candidates?.get(0)?.content?.parts?.get(0)?.text ?: ""
-                        val searchQuery = parseGeminiResponse(text)
-                        listener.onSuccess(searchQuery)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Ошибка при обработке ответа Gemini: ${e.message}")
-                        val fallbackQuery = createFallbackSearchQuery(logoDescriptions, labels, textDescriptions, dominantColors)
-                        listener.onSuccess(fallbackQuery)
-                    }
-                } else {
-                    try {
-                        val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                        Log.e(TAG, "Ошибка API: $errorBody")
-                        val fallbackQuery = createFallbackSearchQuery(logoDescriptions, labels, textDescriptions, dominantColors)
-                        listener.onSuccess(fallbackQuery)
-                    } catch (e: IOException) {
-                        val fallbackQuery = createFallbackSearchQuery(logoDescriptions, labels, textDescriptions, dominantColors)
-                        listener.onSuccess(fallbackQuery)
+            // Make API call
+            service.generateContent(apiKey, requestBody).enqueue(object : Callback<GeminiResponse> {
+                override fun onResponse(call: Call<GeminiResponse>, response: Response<GeminiResponse>) {
+                    if (response.isSuccessful && response.body() != null) {
+                        try {
+                            val text = response.body()?.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text ?: ""
+                            val searchQuery = parseGeminiResponse(text)
+                            listener.onSuccess(searchQuery)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing Gemini response: ${e.message}")
+                            listener.onError(e)
+                        }
+                    } else {
+                        try {
+                            val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                            Log.e(TAG, "API Error: $errorBody")
+                            listener.onError(IOException("API Error: $errorBody"))
+                        } catch (e: IOException) {
+                            listener.onError(e)
+                        }
                     }
                 }
-            }
 
-            override fun onFailure(call: Call<GeminiResponse>, t: Throwable) {
-                Log.e(TAG, "Ошибка соединения: ${t.message}")
-                val fallbackQuery = createFallbackSearchQuery(logoDescriptions, labels, textDescriptions, dominantColors)
-                listener.onSuccess(fallbackQuery)
-            }
-        })
+                override fun onFailure(call: Call<GeminiResponse>, t: Throwable) {
+                    Log.e(TAG, "Connection error: ${t.message}")
+                    listener.onError(Exception(t))
+                }
+            })
+        } catch (e: Exception) {
+            Log.e(TAG, "Error preparing request: ${e.message}")
+            listener.onError(e)
+        }
     }
 
-    private fun buildSearchPrompt(
-        logoDescriptions: List<Pair<String, Float>>,
-        labels: List<Pair<String, Float>>,
-        textDescriptions: List<String>,
-        dominantColors: List<Triple<Int, Int, Int>>
-    ): String {
-        val sb = StringBuilder()
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val resizedBitmap = resizeBitmapIfNeeded(bitmap)
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.NO_WRAP)
+    }
 
-        sb.append("На основе следующих тегов и описаний, определи, какой именно товар на фотографии, ")
-        sb.append("и сформируй оптимальный поисковый запрос для его поиска на маркетплейсах.\n\n")
+    private fun resizeBitmapIfNeeded(bitmap: Bitmap, maxSize: Int = 1024): Bitmap {
+        // Resize bitmap if it's too large to avoid API limits
+        val width = bitmap.width
+        val height = bitmap.height
 
-        if (logoDescriptions.isNotEmpty()) {
-            sb.append("Логотипы (с оценкой достоверности):\n")
-            logoDescriptions.forEach { (desc, score) ->
-                sb.append("- $desc (${String.format("%.2f", score)})\n")
-            }
-            sb.append("\n")
+        if (width <= maxSize && height <= maxSize) {
+            return bitmap
         }
 
-        if (labels.isNotEmpty()) {
-            sb.append("Метки (с оценкой достоверности):\n")
-            labels.forEach { (desc, score) ->
-                sb.append("- $desc (${String.format("%.2f", score)})\n")
-            }
-            sb.append("\n")
+        val ratio = width.toFloat() / height.toFloat()
+        val newWidth: Int
+        val newHeight: Int
+
+        if (width > height) {
+            newWidth = maxSize
+            newHeight = (maxSize / ratio).toInt()
+        } else {
+            newHeight = maxSize
+            newWidth = (maxSize * ratio).toInt()
         }
 
-        if (textDescriptions.isNotEmpty()) {
-            sb.append("Текст на изображении:\n")
-            textDescriptions.forEach { text ->
-                sb.append("- $text\n")
-            }
-            sb.append("\n")
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+
+    private fun buildImageAnalysisRequest(base64Image: String): JsonObject {
+        val gson = Gson()
+
+        // Create the text instruction part
+        val textPart = JsonObject().apply {
+            addProperty("text", buildAnalysisPrompt())
         }
 
-        if (dominantColors.isNotEmpty()) {
-            sb.append("Доминирующие цвета (RGB):\n")
-            dominantColors.forEachIndexed { index, (r, g, b) ->
-                val colorName = rgbToColorName(r, g, b)
-                sb.append("- Цвет ${index + 1}: R:$r, G:$g, B:$b ($colorName)\n")
+        // Create the image part with inline_data
+        val imagePart = JsonObject().apply {
+            val inlineData = JsonObject().apply {
+                addProperty("mime_type", "image/jpeg")
+                addProperty("data", base64Image)
             }
-            sb.append("\n")
+            add("inline_data", inlineData)
         }
 
-        sb.append("Важно: Определи тип товара максимально точно. Когда определяешь тип товара:\n")
-        sb.append("1. Не объединяй товары в общие категории, указывай конкретный тип (например, 'Очки', 'Сумка', 'Кубик Рубика')\n")
-        sb.append("2. Если тип товара не очевиден из меток, логически определи его на основе бренда или других признаков\n")
-        sb.append("3. Не используй материалы, цвета или общие категории (например, 'Silver', 'Plastic', 'Carbon fibers', 'Electronics', 'Gadget') как тип товара\n\n")
+        // Create contents array with both parts
+        val contentsParts = JsonObject()
+        contentsParts.add("parts", gson.toJsonTree(listOf(textPart, imagePart)))
 
-        sb.append("Обрати особое внимание на текст изображения - он часто содержит название модели или бренда. ")
-        sb.append("Используй только релевантную информацию для поиска - избегай включения случайных слов, материалов, ")
-        sb.append("и описательных терминов, которые не помогают при поиске конкретного товара.\n\n")
+        // Build the complete request
+        val request = JsonObject()
+        request.add("contents", gson.toJsonTree(listOf(contentsParts)))
 
-        sb.append("Сформируй четкий и лаконичный поисковый запрос, который наилучшим образом описывает товар. ")
-        sb.append("Включи название бренда (если определено), тип продукта и модель. ")
-        sb.append("Цвет указывай только если он важен для идентификации товара. ")
-        sb.append("Убери из запроса лишние слова и технические термины, не относящиеся к поиску.\n\n")
+        return request
+    }
 
-        sb.append("Ответь в следующем формате без дополнительных комментариев:\n\n")
-
-        sb.append("Поисковый запрос: [короткий и точный запрос]\n")
-        sb.append("Тип товара: [конкретный тип товара, а не категория или материал]\n")
-        sb.append("Название/Модель: [если определяется конкретная модель или название]\n")
-        sb.append("Бренд: [если определяется бренд]\n")
-        sb.append("Цвет: [основной цвет товара]\n")
-
-        return sb.toString()
+    private fun buildAnalysisPrompt(): String {
+        return """
+            Проанализируй это изображение товара и определи следующие детали:
+            1. Тип товара (конкретный тип, например: "Смартфон", "Наушники", "Кроссовки")
+            2. Бренд (если виден)
+            3. Модель (если определяется)
+            4. Основной цвет товара
+            
+            На основе этих данных составь оптимальный поисковый запрос для поиска этого товара на маркетплейсах.
+            
+            Важно: Определи тип товара максимально точно. Когда определяешь тип товара:
+            1. Укажи конкретный тип продукта, а не общую категорию
+            2. Если на изображении есть текст - он может содержать важную информацию о бренде и модели
+            3. Обрати внимание на логотипы - они часто указывают на бренд
+            4. Используй только релевантную информацию для поиска
+            
+            Ответь в следующем формате без дополнительных комментариев:
+            
+            Поисковый запрос: [короткий и точный запрос]
+            Тип товара: [конкретный тип товара]
+            Название/Модель: [если определяется конкретная модель или название]
+            Бренд: [если определяется бренд]
+            Цвет: [основной цвет товара]
+        """.trimIndent()
     }
 
     private fun parseGeminiResponse(text: String): SearchQuery {
@@ -170,113 +199,17 @@ class GeminiApiClient(private val apiKey: String) {
             }
         }
 
+        // If search query is empty but we have other information, construct a basic query
+        if (searchQuery.isEmpty() && (productType.isNotEmpty() || brand.isNotEmpty())) {
+            val queryParts = mutableListOf<String>()
+            if (brand.isNotEmpty()) queryParts.add(brand)
+            if (modelName.isNotEmpty()) queryParts.add(modelName)
+            if (productType.isNotEmpty()) queryParts.add(productType)
+            if (color.isNotEmpty() && color != "многоцветный") queryParts.add(color)
+
+            searchQuery = queryParts.joinToString(" ")
+        }
+
         return SearchQuery(searchQuery, productType, modelName, brand, color)
-    }
-
-    private fun createFallbackSearchQuery(
-        logoDescriptions: List<Pair<String, Float>>,
-        labels: List<Pair<String, Float>>,
-        textDescriptions: List<String>,
-        dominantColors: List<Triple<Int, Int, Int>>
-    ): SearchQuery {
-        val brand = logoDescriptions.firstOrNull { it.second > 0.8 }?.first ?:
-        extractBrandFromText(textDescriptions)
-
-        val specificProductLabels = labels.filter {
-            !isGenericLabel(it.first) && it.second > 0.7
-        }
-
-        val productType = when {
-            specificProductLabels.isNotEmpty() -> specificProductLabels.first().first
-            labels.isNotEmpty() -> labels.first().first
-            else -> "Товар"
-        }
-
-        val dominantColor = if (dominantColors.isNotEmpty()) {
-            rgbToColorName(
-                dominantColors[0].first,
-                dominantColors[0].second,
-                dominantColors[0].third
-            )
-        } else {
-            ""
-        }
-
-        val query = buildString {
-            if (brand.isNotEmpty()) {
-                append("$brand ")
-            }
-
-            val modelNumber = extractModelFromText(textDescriptions, brand)
-            if (modelNumber.isNotEmpty()) {
-                append("$modelNumber ")
-            }
-
-            if (productType.isNotEmpty() && !brand.contains(productType, ignoreCase = true)) {
-                append("$productType ")
-            }
-
-            if (dominantColor.isNotEmpty() && !isColorRedundant(this.toString(), dominantColor)) {
-                append(dominantColor)
-            }
-        }.trim()
-
-        return SearchQuery(query, productType, extractModelFromText(textDescriptions, brand), brand, dominantColor)
-    }
-
-    private fun extractBrandFromText(textDescriptions: List<String>): String {
-        for (text in textDescriptions) {
-            val words = text.split(" ", "-", "_")
-            for (word in words) {
-                val cleanWord = word.trim().replace(Regex("[^A-Za-z0-9]"), "")
-                if (cleanWord.length > 2 && !cleanWord.matches(Regex("^[0-9]+$"))) {
-                    return cleanWord
-                }
-            }
-        }
-        return ""
-    }
-
-    private fun extractModelFromText(textDescriptions: List<String>, brand: String): String {
-        for (text in textDescriptions) {
-            if (text.contains(Regex("[A-Z0-9]{5,}"))) {
-                return text.replace(brand, "", ignoreCase = true).trim()
-            }
-        }
-        return ""
-    }
-
-    private fun isGenericLabel(label: String): Boolean {
-        val genericTerms = listOf(
-            "gadget", "electronics", "device", "product", "item",
-            "plastic", "metal", "silver", "gold", "carbon", "fibers",
-            "packaging", "box", "container", "material"
-        )
-
-        return genericTerms.any {
-            label.lowercase().contains(it)
-        }
-    }
-
-    private fun isColorRedundant(query: String, color: String): Boolean {
-        return query.lowercase().contains(color.lowercase())
-    }
-
-    private fun rgbToColorName(r: Int, g: Int, b: Int): String {
-        return when {
-            r > 200 && g > 200 && b > 200 -> "белый"
-            r < 60 && g < 60 && b < 60 -> "черный"
-            r > 200 && g < 100 && b < 100 -> "красный"
-            r < 100 && g > 150 && b < 100 -> "зеленый"
-            r < 100 && g < 100 && b > 150 -> "синий"
-            r > 200 && g > 150 && b < 100 -> "желтый"
-            r > 200 && g > 100 && b < 100 -> "оранжевый"
-            r > 150 && g < 100 && b > 150 -> "фиолетовый"
-            r < 150 && g > 150 && b > 150 -> "голубой"
-            r > 150 && g > 100 && b > 150 -> "розовый"
-            r > 150 && g > 100 && b < 100 -> "коричневый"
-            r < 200 && r > 100 && g < 200 && g > 100 && b < 200 && b > 100 -> "серый"
-            else -> "многоцветный"
-        }
     }
 }

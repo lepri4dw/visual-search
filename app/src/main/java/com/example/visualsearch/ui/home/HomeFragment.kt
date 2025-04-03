@@ -23,9 +23,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.example.visualsearch.CameraActivity
 import com.example.visualsearch.R
-import com.example.visualsearch.client.VisionApiClient
 import com.example.visualsearch.databinding.FragmentHomeBinding
-import com.google.cloud.vision.v1.AnnotateImageResponse
+import com.example.visualsearch.remote.gemini.GeminiApiClient
+import com.example.visualsearch.remote.gemini.SearchQuery
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -39,7 +39,7 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var visionApiClient: VisionApiClient
+    private lateinit var geminiApiClient: GeminiApiClient
     private var isProcessing = false
 
     // Лаунчер для выбора изображения из галереи
@@ -96,8 +96,8 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Инициализируем клиент Vision API
-        visionApiClient = VisionApiClient(requireContext())
+        // Инициализируем клиент Gemini API
+        geminiApiClient = GeminiApiClient(getString(R.string.gemini_api_key))
 
         // Настраиваем кнопки
         setupButtons()
@@ -177,25 +177,20 @@ class HomeFragment : Fragment() {
     }
 
     private fun processImage(bitmap: Bitmap) {
+        if (isProcessing) return
+
         isProcessing = true
         showLoading(true)
         hideResult()
 
-        visionApiClient.analyzeImage(bitmap, object : VisionApiClient.VisionApiListener {
-            override fun onSuccess(labels: List<String>, imageResponse: AnnotateImageResponse) {
+        geminiApiClient.analyzeImage(bitmap, object : GeminiApiClient.GeminiApiListener {
+            override fun onSuccess(searchQuery: SearchQuery) {
                 if (activity == null) return
 
                 activity?.runOnUiThread {
                     isProcessing = false
                     showLoading(false)
-                    displayResult(imageResponse)
-
-                    // Выводим теги в Toast для быстрого просмотра
-                    Toast.makeText(
-                        requireContext(),
-                        "Обнаружены метки: ${labels.joinToString(", ")}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    displayResult(searchQuery)
                 }
             }
 
@@ -206,29 +201,7 @@ class HomeFragment : Fragment() {
                     isProcessing = false
                     showLoading(false)
                     Toast.makeText(requireContext(), "Ошибка анализа изображения: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            // Переопределяем метод обратной совместимости
-            override fun onSuccess(labels: List<String>) {
-                if (activity == null) return
-
-                activity?.runOnUiThread {
-                    isProcessing = false
-                    showLoading(false)
-
-                    // Отображаем только метки, если полный ответ недоступен
-                    val builder = StringBuilder()
-                    builder.append("Метки: ").append(labels.joinToString(", "))
-
-                    binding.tvGarbageType.text = "Обнаруженные объекты:"
-                    binding.tvInstructions.text = builder.toString()
-                    binding.tvEstimatedCost.visibility = View.GONE
-
-                    // Анимация появления результатов
-                    val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
-                    binding.cardResult.visibility = View.VISIBLE
-                    binding.cardResult.startAnimation(slideUpAnimation)
+                    Log.e(TAG, "Ошибка анализа изображения", e)
                 }
             }
         })
@@ -253,59 +226,46 @@ class HomeFragment : Fragment() {
         binding.cardResult.visibility = View.GONE
     }
 
-    private fun displayResult(response: AnnotateImageResponse) {
+    private fun displayResult(searchQuery: SearchQuery) {
         val resultBuilder = StringBuilder()
 
-        // Добавляем обнаруженные логотипы
-        if (response.logoAnnotationsList.isNotEmpty()) {
-            resultBuilder.append("Логотипы: ")
-            response.logoAnnotationsList.forEach { logo ->
-                resultBuilder.append("${logo.description} (${String.format("%.1f", logo.score * 100)}%), ")
-            }
-            resultBuilder.append("\n\n")
+        resultBuilder.append("Поисковый запрос: ").append(searchQuery.query).append("\n\n")
+
+        if (searchQuery.productType.isNotEmpty()) {
+            resultBuilder.append("Тип товара: ").append(searchQuery.productType).append("\n\n")
         }
 
-        // Добавляем метки (теги)
-        resultBuilder.append("Метки: ")
-        response.labelAnnotationsList.forEach { label ->
-            resultBuilder.append("${label.description} (${String.format("%.1f", label.score * 100)}%), ")
-        }
-        resultBuilder.append("\n\n")
-
-        // Добавляем текст
-        if (response.textAnnotationsList.isNotEmpty()) {
-            resultBuilder.append("Распознанный текст: ")
-            val fullText = response.textAnnotationsList.firstOrNull()?.description ?: ""
-            resultBuilder.append(fullText.replace("\n", " ").trim())
-            resultBuilder.append("\n\n")
+        if (searchQuery.brand.isNotEmpty()) {
+            resultBuilder.append("Бренд: ").append(searchQuery.brand).append("\n\n")
         }
 
-        // Добавляем доминирующие цвета
-        if (response.imagePropertiesAnnotation?.dominantColors?.colorsList?.isNotEmpty() == true) {
-            resultBuilder.append("Основные цвета: ")
-            response.imagePropertiesAnnotation.dominantColors.colorsList.take(3).forEach { colorInfo ->
-                val red = (colorInfo.color.red * 255).toInt()
-                val green = (colorInfo.color.green * 255).toInt()
-                val blue = (colorInfo.color.blue * 255).toInt()
-                resultBuilder.append("RGB($red,$green,$blue) (${String.format("%.1f", colorInfo.score * 100)}%), ")
-            }
+        if (searchQuery.modelName.isNotEmpty()) {
+            resultBuilder.append("Модель: ").append(searchQuery.modelName).append("\n\n")
         }
 
-        // Отображаем результаты в cardResult
-        binding.tvGarbageType.text = "Результаты анализа изображения:"
-        binding.tvInstructions.text = resultBuilder.toString().trimEnd(' ', ',')
+        if (searchQuery.color.isNotEmpty()) {
+            resultBuilder.append("Цвет: ").append(searchQuery.color)
+        }
 
-        // Если нужно показать дополнительную информацию, используем tvEstimatedCost
+        // Обновляем содержимое результата
+        binding.tvGarbageType.text = "Анализ товара:"
+        binding.tvInstructions.text = resultBuilder.toString().trim()
+
+        // Показываем дополнительную информацию
         binding.tvEstimatedCost.visibility = View.VISIBLE
-        binding.tvEstimatedCost.text = "Выявлено ${response.labelAnnotationsList.size} меток, " +
-                "${response.logoAnnotationsList.size} логотипов, " +
-                "${if (response.textAnnotationsList.isNotEmpty()) "присутствует текст" else "текст не обнаружен"}."
+        binding.tvEstimatedCost.text = "Сформирован поисковый запрос: \"${searchQuery.query}\""
 
         // Анимация появления результатов
         val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
-
         binding.cardResult.visibility = View.VISIBLE
         binding.cardResult.startAnimation(slideUpAnimation)
+
+        // Показываем информацию о результате в Toast
+        Toast.makeText(
+            requireContext(),
+            "Товар: ${searchQuery.productType}, Бренд: ${searchQuery.brand}",
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     override fun onDestroyView() {
