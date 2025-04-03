@@ -24,8 +24,12 @@ import com.bumptech.glide.Glide
 import com.example.visualsearch.CameraActivity
 import com.example.visualsearch.R
 import com.example.visualsearch.databinding.FragmentHomeBinding
+import com.example.visualsearch.model.FilterOptions
+import com.example.visualsearch.model.MarketplaceType
 import com.example.visualsearch.remote.gemini.GeminiApiClient
 import com.example.visualsearch.remote.gemini.SearchQuery
+import com.example.visualsearch.ui.dialog.FilterDialogFragment
+import com.example.visualsearch.util.MarketplaceUrlBuilder
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -41,6 +45,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var geminiApiClient: GeminiApiClient
     private var isProcessing = false
+    private lateinit var currentSearchQuery: SearchQuery
 
     // Лаунчер для выбора изображения из галереи
     private val imagePickerLauncher = registerForActivityResult(
@@ -224,6 +229,7 @@ class HomeFragment : Fragment() {
 
     private fun hideResult() {
         binding.cardResult.visibility = View.GONE
+        binding.marketplaceButtonContainer.visibility = View.GONE
     }
 
     private fun displayResult(searchQuery: SearchQuery) {
@@ -255,6 +261,17 @@ class HomeFragment : Fragment() {
         binding.tvEstimatedCost.visibility = View.VISIBLE
         binding.tvEstimatedCost.text = "Сформирован поисковый запрос: \"${searchQuery.query}\""
 
+        // Сохраняем текущий поисковый запрос
+        currentSearchQuery = searchQuery
+
+        // Показываем кнопки маркетплейсов с анимацией
+        binding.marketplaceButtonContainer.visibility = View.VISIBLE
+        val fadeInAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in_buttons)
+        binding.marketplaceButtonContainer.startAnimation(fadeInAnimation)
+        
+        // Настраиваем действия для кнопок маркетплейсов
+        setupMarketplaceButtons(searchQuery.query)
+
         // Анимация появления результатов
         val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
         binding.cardResult.visibility = View.VISIBLE
@@ -266,6 +283,64 @@ class HomeFragment : Fragment() {
             "Товар: ${searchQuery.productType}, Бренд: ${searchQuery.brand}",
             Toast.LENGTH_LONG
         ).show()
+    }
+    
+    private fun setupMarketplaceButtons(query: String) {
+        // Получаем анимацию пульсации
+        val pulseAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.pulse_scale)
+        
+        // Кнопка поиска в Wildberries
+        binding.btnSearchWildberries.setOnClickListener {
+            it.startAnimation(pulseAnimation)
+            showFilterDialog(MarketplaceType.WILDBERRIES, query)
+        }
+        
+        // Кнопка поиска в Ozon
+        binding.btnSearchOzon.setOnClickListener {
+            it.startAnimation(pulseAnimation)
+            showFilterDialog(MarketplaceType.OZON, query)
+        }
+        
+        // Добавляем эффект касания для кнопок
+        binding.btnSearchWildberries.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                v.alpha = 0.8f
+            } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                v.alpha = 1.0f
+            }
+            false
+        }
+        
+        binding.btnSearchOzon.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                v.alpha = 0.8f
+            } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                v.alpha = 1.0f
+            }
+            false
+        }
+    }
+    
+    private fun showFilterDialog(marketplaceType: MarketplaceType, query: String) {
+        val dialogFragment = FilterDialogFragment.newInstance(marketplaceType, currentSearchQuery.brand)
+        dialogFragment.setFilterDialogListener(object : FilterDialogFragment.FilterDialogListener {
+            override fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions) {
+                // Строим URL с учетом фильтров и открываем его
+                val url = MarketplaceUrlBuilder.buildSearchUrl(marketplaceType, query, filterOptions)
+                openMarketplaceSearch(url)
+            }
+        })
+        dialogFragment.show(parentFragmentManager, "FilterDialog")
+    }
+    
+    private fun openMarketplaceSearch(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Не удалось открыть браузер: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Ошибка при открытии URL", e)
+        }
     }
 
     override fun onDestroyView() {

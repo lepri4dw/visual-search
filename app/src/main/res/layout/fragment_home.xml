@@ -229,6 +229,38 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
+
+                <!-- Кнопки для поиска на маркетплейсах -->
+                <LinearLayout
+                    android:id="@+id/marketplaceButtonContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone">
+
+                    <Button
+                        android:id="@+id/btnSearchWildberries"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="#CB11AB"
+                        android:text="Найти в Wildberries"
+                        android:textColor="@android:color/white"
+                        android:textAllCaps="false" />
+
+                    <Button
+                        android:id="@+id/btnSearchOzon"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="#005BFF"
+                        android:text="Найти в Ozon"
+                        android:textColor="@android:color/white"
+                        android:textAllCaps="false" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
