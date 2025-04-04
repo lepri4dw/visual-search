@@ -21,6 +21,7 @@ object MarketplaceUrlBuilder {
         return when (marketplaceType) {
             MarketplaceType.WILDBERRIES -> buildWildberriesUrl(query, filterOptions)
             MarketplaceType.OZON -> buildOzonUrl(query, filterOptions)
+            MarketplaceType.LALAFO -> buildLalafoUrl(query, filterOptions)
         }
     }
 
@@ -127,6 +128,40 @@ object MarketplaceUrlBuilder {
         if (filterOptions.discount) {
             urlBuilder.appendQueryParameter("discount", "1")
         }
+        
+        return urlBuilder.build().toString()
+    }
+
+    /**
+     * Формирует URL для поиска на Lalafo с учетом фильтров
+     */
+    private fun buildLalafoUrl(
+        query: String,
+        filterOptions: FilterOptions
+    ): String {
+        // Используем правильный формат URL для Lalafo
+        val baseUrl = "https://lalafo.kg/kyrgyzstan/q-$query"
+        val urlBuilder = Uri.parse(baseUrl).buildUpon()
+        
+        // Добавляем параметры фильтрации если они установлены
+        
+        // Диапазон цен
+        if (filterOptions.priceFrom != null) {
+            urlBuilder.appendQueryParameter("price[from]", filterOptions.priceFrom.toString())
+        }
+        
+        if (filterOptions.priceTo != null) {
+            urlBuilder.appendQueryParameter("price[to]", filterOptions.priceTo.toString())
+        }
+        
+        // Сортировка
+        val sort = when (filterOptions.sortType) {
+            SortType.POPULARITY -> "newest"  // На Lalafo нет точного соответствия "популярности", используем "newest"
+            SortType.PRICE_ASC -> "cheap"
+            SortType.PRICE_DESC -> "expensive"
+            SortType.RATING -> "nearest"     // Lalafo не имеет сортировки по рейтингу
+        }
+        urlBuilder.appendQueryParameter("order", sort)
         
         return urlBuilder.build().toString()
     }

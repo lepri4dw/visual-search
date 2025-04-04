@@ -18,5 +18,6 @@ enum class SortType {
 
 enum class MarketplaceType {
     WILDBERRIES,
-    OZON
+    OZON,
+    LALAFO
 }

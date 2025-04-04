@@ -48,18 +48,23 @@ class FilterDialogFragment : DialogFragment() {
         
         // Получаем аргументы
         arguments?.let {
-            marketplaceType = if (it.getInt("marketplace_type") == 0) 
-                MarketplaceType.WILDBERRIES else MarketplaceType.OZON
+            marketplaceType = when (it.getInt("marketplace_type")) {
+                0 -> MarketplaceType.WILDBERRIES
+                1 -> MarketplaceType.OZON
+                2 -> MarketplaceType.LALAFO
+                else -> MarketplaceType.WILDBERRIES
+            }
             
             // Установка подсказки в заголовке в зависимости от маркетплейса
-            val marketplaceName = if (marketplaceType == MarketplaceType.WILDBERRIES) "Wildberries" else "Ozon"
-            binding.root.findViewById<android.widget.TextView>(R.id.tvDialogTitle)?.text = 
-                "Параметры поиска в $marketplaceName"
-            
-            // Если это Wildberries, установим подсказку для бренда
-            if (marketplaceType == MarketplaceType.WILDBERRIES) {
-                binding.etBrand.hint = "Фильтр по бренду"
+            val marketplaceName = when (marketplaceType) {
+                MarketplaceType.WILDBERRIES -> "Wildberries"
+                MarketplaceType.OZON -> "Ozon"
+                MarketplaceType.LALAFO -> "Lalafo"
             }
+            binding.tvDialogTitle.text = "Параметры поиска в $marketplaceName"
+            
+            // Настраиваем интерфейс в зависимости от маркетплейса
+            setupMarketplaceSpecificUI()
         }
         
         // Предзаполняем поле бренда, если он был определен при анализе
@@ -70,6 +75,41 @@ class FilterDialogFragment : DialogFragment() {
         }
         
         setupListeners()
+    }
+    
+    private fun setupMarketplaceSpecificUI() {
+        when (marketplaceType) {
+            MarketplaceType.WILDBERRIES -> {
+                // Настройки для Wildberries
+                binding.etBrand.hint = "Фильтр по бренду"
+                binding.rbPopularity.text = "По популярности"
+                binding.rbPriceAsc.text = "По возрастанию цены"
+                binding.rbPriceDesc.text = "По убыванию цены"
+                binding.rbRating.text = "По рейтингу"
+                binding.cbDeliveryToday.text = "Быстрая доставка"
+                binding.cbDiscount.text = "Товары со скидкой"
+            }
+            MarketplaceType.OZON -> {
+                // Настройки для Ozon
+                binding.etBrand.hint = "Фильтр по бренду"
+                binding.rbPopularity.text = "По популярности"
+                binding.rbPriceAsc.text = "По возрастанию цены"
+                binding.rbPriceDesc.text = "По убыванию цены"
+                binding.rbRating.text = "По рейтингу"
+                binding.cbDeliveryToday.text = "Экспресс-доставка"
+                binding.cbDiscount.text = "Товары со скидкой"
+            }
+            MarketplaceType.LALAFO -> {
+                // Настройки для Lalafo
+                binding.etBrand.visibility = View.GONE
+                binding.rbPopularity.text = "По новизне"
+                binding.rbPriceAsc.text = "Сначала дешевле"
+                binding.rbPriceDesc.text = "Сначала дороже"
+                binding.rbRating.text = "По близости"
+                binding.cbDeliveryToday.visibility = View.GONE
+                binding.cbDiscount.visibility = View.GONE
+            }
+        }
     }
     
     private fun setupListeners() {

@@ -301,6 +301,12 @@ class HomeFragment : Fragment() {
             showFilterDialog(MarketplaceType.OZON, query)
         }
         
+        // Кнопка поиска в Lalafo
+        binding.btnSearchLalafo.setOnClickListener {
+            it.startAnimation(pulseAnimation)
+            showFilterDialog(MarketplaceType.LALAFO, query)
+        }
+        
         // Добавляем эффект касания для кнопок
         binding.btnSearchWildberries.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
@@ -312,6 +318,15 @@ class HomeFragment : Fragment() {
         }
         
         binding.btnSearchOzon.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                v.alpha = 0.8f
+            } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                v.alpha = 1.0f
+            }
+            false
+        }
+        
+        binding.btnSearchLalafo.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 v.alpha = 0.8f
             } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
