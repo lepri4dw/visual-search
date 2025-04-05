@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardMarketplace"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Цветная полоса слева -->
+        <View
+            android:id="@+id/viewColorStrip"
+            android:layout_width="12dp"
+            android:layout_height="0dp"
+            android:background="@color/green_primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Лого маркетплейса -->
+        <ImageView
+            android:id="@+id/ivMarketplaceLogo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:contentDescription="Логотип маркетплейса"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/viewColorStrip"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Название маркетплейса -->
+        <TextView
+            android:id="@+id/tvMarketplaceName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:text="Название маркетплейса"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/tvMarketplaceInfo"
+            app:layout_constraintEnd_toStartOf="@+id/ivInstalled"
+            app:layout_constraintStart_toEndOf="@+id/ivMarketplaceLogo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <!-- Дополнительная информация о маркетплейсе -->
+        <TextView
+            android:id="@+id/tvMarketplaceInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:text="Информация о маркетплейсе"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ivInstalled"
+            app:layout_constraintStart_toEndOf="@+id/ivMarketplaceLogo"
+            app:layout_constraintTop_toBottomOf="@+id/tvMarketplaceName" />
+
+        <!-- Индикатор установленного приложения -->
+        <ImageView
+            android:id="@+id/ivInstalled"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Индикатор установленного приложения"
+            android:src="@drawable/ic_app_installed"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
