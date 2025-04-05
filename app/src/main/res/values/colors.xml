@@ -16,6 +16,7 @@
     <color name="green_dark">#388E3C</color>
     <color name="accent">#FFC107</color>
     <color name="accent_dark">#FFA000</color>
+    <color name="chip_background">#F0F0F0</color>
 
     <!-- Цвета маркетплейсов -->
     <color name="wildberries_color">#CB11AB</color>

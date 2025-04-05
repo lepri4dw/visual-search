@@ -12,6 +12,100 @@
         android:layout_height="wrap_content"
         tools:context=".ui.home.HomeFragment">
 
+        <!-- Search Bar at the top -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/searchBarCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@color/white"
+                android:padding="8dp">
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Поиск товаров"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="8dp"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/btnClearSearch"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Очистить"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:visibility="gone"
+                    app:tint="@color/text_secondary" />
+
+                <ImageButton
+                    android:id="@+id/btnSearch"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Поиск"
+                    android:src="@android:drawable/ic_menu_search"
+                    app:tint="@color/green_primary" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <!-- Recent Searches Chips (Horizontal scrollable) -->
+        <HorizontalScrollView
+            android:id="@+id/recentSearchesScroll"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:scrollbars="none"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/searchBarCard">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupRecentSearches"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:chipSpacing="8dp">
+
+                <!-- These will be populated dynamically -->
+                <com.google.android.material.chip.Chip
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Смартфоны"
+                    style="@style/Widget.MaterialComponents.Chip.Action"/>
+
+                <com.google.android.material.chip.Chip
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Наушники"
+                    style="@style/Widget.MaterialComponents.Chip.Action"/>
+
+                <com.google.android.material.chip.Chip
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Кроссовки"
+                    style="@style/Widget.MaterialComponents.Chip.Action"/>
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
         <!-- Верхний блок с заголовком -->
         <androidx.cardview.widget.CardView
             android:id="@+id/headerCard"
@@ -22,7 +116,7 @@
             app:cardElevation="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/recentSearchesScroll">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -158,7 +252,7 @@
                 android:textColor="@color/text_on_primary"
                 android:textAllCaps="false" />
         </LinearLayout>
-        
+
         <!-- Новый контейнер для результатов анализа и маркетплейсов -->
         <LinearLayout
             android:id="@+id/resultsContainer"
@@ -193,7 +287,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
-                        
+
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -202,15 +296,15 @@
                             android:textColor="@color/green_primary"
                             android:textSize="18sp"
                             android:textStyle="bold" />
-                            
+
                         <ImageButton
                             android:id="@+id/btnCloseResults"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:background="?attr/selectableItemBackgroundBorderless" 
+                            android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_menu_close_clear_cancel"
-                            android:tint="@color/green_primary"
-                            android:contentDescription="Закрыть" />
+                            android:contentDescription="Закрыть"
+                            app:tint="@color/green_primary" />
                     </LinearLayout>
 
                     <View
@@ -298,7 +392,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/white">
-                
+
                 <LinearLayout
                     android:id="@+id/marketplacesHeader"
                     android:layout_width="match_parent"

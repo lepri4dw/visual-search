@@ -42,7 +42,7 @@ class GeminiApiClient(private val apiKey: String) {
     }
 
     interface GeminiApiListener {
-        fun onSuccess(searchQuery: SearchQuery)
+        fun onSuccess(searchQuery: SearchQueryResult)
         fun onError(e: Exception)
     }
 
@@ -152,32 +152,40 @@ class GeminiApiClient(private val apiKey: String) {
 
     private fun buildAnalysisPrompt(): String {
         return """
-            Проанализируй это изображение товара и определи следующие детали:
-            1. Тип товара (конкретный тип, например: "Смартфон", "Наушники", "Кроссовки")
-            2. Бренд (если виден)
-            3. Модель (если определяется)
-            4. Основной цвет товара
-            
-            На основе этих данных составь оптимальный поисковый запрос для поиска этого товара на маркетплейсах.
-            
-            Важно: Определи тип товара максимально точно. Когда определяешь тип товара:
-            1. Укажи конкретный тип продукта, а не общую категорию
-            2. Если на изображении есть текст - он может содержать важную информацию о бренде и модели
-            3. Обрати внимание на логотипы - они часто указывают на бренд
-            4. Используй только релевантную информацию для поиска
-            
-            Ответь в следующем формате без дополнительных комментариев:
-            
-            Поисковый запрос: [короткий и точный запрос]
-            Тип товара: [конкретный тип товара]
-            Название/Модель: [если определяется конкретная модель или название]
-            Бренд: [если определяется бренд]
-            Цвет: [основной цвет товара]
-        """.trimIndent()
+        Проанализируй это изображение товара и определи следующие детали:
+        1. Тип товара (конкретный тип, например: "Смартфон", "Наушники", "Кроссовки")
+        2. Бренд (если виден)
+        3. Модель (если определяется)
+        4. Основной цвет товара
+        
+        На основе этих данных составь два поисковых запроса:
+        1. Основной запрос - максимально точный для поиска именно этого товара
+        2. Альтернативный запрос - более общий для поиска похожих товаров (категория или тип товара)
+        
+        Важно: Определи тип товара максимально точно. Когда определяешь тип товара:
+        1. Укажи конкретный тип продукта, а не общую категорию
+        2. Если на изображении есть текст - он может содержать важную информацию о бренде и модели
+        3. Обрати внимание на логотипы - они часто указывают на бренд
+        4. Используй только релевантную информацию для поиска
+        
+        Ответь в следующем формате без дополнительных комментариев:
+        
+        Основной запрос: [короткий и точный запрос для конкретного товара]
+        Альтернативный запрос: [более общий запрос для похожих товаров]
+        Тип товара: [конкретный тип товара]
+        Название/Модель: [если определяется конкретная модель или название]
+        Бренд: [если определяется бренд]
+        Цвет: [основной цвет товара]
+    """.trimIndent()
     }
+    data class SearchQueryResult(
+        val mainQuery: SearchQuery,
+        val alternativeQuery: SearchQuery
+    )
 
-    private fun parseGeminiResponse(text: String): SearchQuery {
-        var searchQuery = ""
+    private fun parseGeminiResponse(text: String): SearchQueryResult {
+        var mainSearchQuery = ""
+        var alternativeSearchQuery = ""
         var productType = ""
         var modelName = ""
         var brand = ""
@@ -186,8 +194,10 @@ class GeminiApiClient(private val apiKey: String) {
         val lines = text.split("\n")
         for (line in lines) {
             when {
-                line.startsWith("Поисковый запрос:") ->
-                    searchQuery = line.substringAfter("Поисковый запрос:").trim()
+                line.startsWith("Основной запрос:") ->
+                    mainSearchQuery = line.substringAfter("Основной запрос:").trim()
+                line.startsWith("Альтернативный запрос:") ->
+                    alternativeSearchQuery = line.substringAfter("Альтернативный запрос:").trim()
                 line.startsWith("Тип товара:") ->
                     productType = line.substringAfter("Тип товара:").trim()
                 line.startsWith("Название/Модель:") ->
@@ -199,17 +209,31 @@ class GeminiApiClient(private val apiKey: String) {
             }
         }
 
-        // If search query is empty but we have other information, construct a basic query
-        if (searchQuery.isEmpty() && (productType.isNotEmpty() || brand.isNotEmpty())) {
+        // Если основной запрос пустой, создаем его из имеющихся данных
+        if (mainSearchQuery.isEmpty() && (productType.isNotEmpty() || brand.isNotEmpty())) {
             val queryParts = mutableListOf<String>()
             if (brand.isNotEmpty()) queryParts.add(brand)
             if (modelName.isNotEmpty()) queryParts.add(modelName)
             if (productType.isNotEmpty()) queryParts.add(productType)
             if (color.isNotEmpty() && color != "многоцветный") queryParts.add(color)
 
-            searchQuery = queryParts.joinToString(" ")
+            mainSearchQuery = queryParts.joinToString(" ")
         }
 
-        return SearchQuery(searchQuery, productType, modelName, brand, color)
+        // Если альтернативный запрос пустой, используем тип товара или часть основного запроса
+        if (alternativeSearchQuery.isEmpty()) {
+            alternativeSearchQuery = if (productType.isNotEmpty()) {
+                // Используем только тип товара как альтернативный запрос
+                productType
+            } else {
+                // Если нет типа товара, используем первое слово из основного запроса
+                mainSearchQuery.split(" ").firstOrNull() ?: mainSearchQuery
+            }
+        }
+
+        val main = SearchQuery(mainSearchQuery, productType, modelName, brand, color)
+        val alternative = SearchQuery(alternativeSearchQuery, productType, "", "", "")
+
+        return SearchQueryResult(main, alternative)
     }
 }
