@@ -4,22 +4,70 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
-
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.visualsearch.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
-
+        tools:layout="@layout/fragment_home">
+        <argument
+            android:name="query"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="productType"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="brand"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="model"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="color"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="imagePath"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+        <!-- Any actions if needed -->
     <fragment
         android:id="@+id/navigation_dashboard"
         android:name="com.example.visualsearch.ui.dashboard.DashboardFragment"
         android:label="@string/title_dashboard"
         tools:layout="@layout/fragment_dashboard" />
 
+
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.example.visualsearch.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_history"
+        android:name="com.example.visualsearch.ui.history.ScanHistoryFragment"
+        android:label="@string/history"
+        tools:layout="@layout/fragment_scan_history">
+        <action
+            android:id="@+id/action_navigation_history_to_scan_detail"
+            app:destination="@id/navigation_scan_detail" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_scan_detail"
+        android:name="com.example.visualsearch.ui.history.ScanDetailFragment"
+        android:label="Scan Detail"
+        tools:layout="@layout/fragment_scan_detail">
+        <argument
+            android:name="scanId"
+            app:argType="long" />
+        <action
+            android:id="@+id/action_scan_detail_to_navigation_home"
+            app:destination="@id/navigation_home" />
+    </fragment>
 </navigation>

@@ -41,4 +41,14 @@
     <string name="analyze_result">Результат анализа</string>
     <string name="analyzing_image">Анализируем изображение...</string>
     <string name="no_image">Нет изображения</string>
+
+    <string name="history">History</string>
+    <string name="clear_history">Clear History</string>
+    <string name="clear_history_confirmation">Are you sure you want to clear all scan history?</string>
+    <string name="clear">Clear</string>
+    <string name="history_cleared">History cleared</string>
+    <string name="no_history">No scan history</string>
+    <string name="delete_scan">Delete Scan</string>
+    <string name="delete_scan_confirmation">Are you sure you want to delete this scan?</string>
+    <string name="delete">Delete</string>
 </resources>

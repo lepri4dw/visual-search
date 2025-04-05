@@ -9,5 +9,5 @@ data class SearchQuery(
     val productType: String,
     val modelName: String,
     val brand: String,
-    val color: String = "" // Добавлено новое поле для цвета
+    val color: String = ""
 ) : Parcelable
