@@ -54,6 +54,7 @@ class HomeFragment : Fragment() {
     private var isProcessing = false
     private var currentSearchQuery: SearchQuery? = null
 
+    // Лаунчер для выбора изображения из галереи
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -65,13 +66,14 @@ class HomeFragment : Fragment() {
                     displayImage(bitmap)
                     processImage(bitmap)
                 } catch (e: IOException) {
-                    Toast.makeText(requireContext(), "Image loading error", Toast.LENGTH_SHORT).show()
-                    Log.e(TAG, "Error loading image from gallery", e)
+                    Toast.makeText(requireContext(), "Ошибка загрузки изображения", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Ошибка загрузки изображения из галереи", e)
                 }
             }
         }
     }
 
+    // Лаунчер для получения изображения с камеры
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -83,8 +85,8 @@ class HomeFragment : Fragment() {
                     displayImage(bitmap)
                     processImage(bitmap)
                 } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Image loading error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    Log.e(TAG, "Error processing camera result", e)
+                    Toast.makeText(requireContext(), "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Ошибка обработки результата с камеры", e)
                 }
             }
         }
@@ -103,18 +105,26 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         historyViewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
+
+        // Инициализируем клиент Gemini API
         geminiApiClient = GeminiApiClient(getString(R.string.gemini_api_key))
+
+        // Настраиваем RecyclerView для маркетплейсов
         setupRecyclerView()
+
+        // Настраиваем кнопки
         setupButtons()
         setupButtonAnimations()
+
+        // Добавляем обработчик для кнопки закрытия результатов
         binding.btnCloseResults.setOnClickListener {
             binding.resultsContainer.visibility = View.GONE
         }
-        
+
         // Process arguments if they exist (when coming from scan detail)
         handleNavigationArguments()
     }
-    
+
     private fun handleNavigationArguments() {
         // Check if we have navigation arguments (from ScanDetailFragment)
         if (args.query != null && args.imagePath != null) {
@@ -127,17 +137,17 @@ class HomeFragment : Fragment() {
                     modelName = args.model ?: "",
                     color = args.color ?: ""
                 )
-                
+
                 // Load and display the image
                 val bitmap = BitmapFactory.decodeFile(args.imagePath)
                 displayImage(bitmap)
-                
+
                 // Display the search results directly
                 displayResult(searchQuery)
-                
+
                 // Update currentSearchQuery for marketplace searches
                 currentSearchQuery = searchQuery
-                
+
                 Log.d(TAG, "Successfully processed navigation arguments")
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing navigation arguments", e)
@@ -151,30 +161,37 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupButtons() {
+        // Кнопка выбора изображения из галереи
         binding.btnSelectImage.setOnClickListener {
             checkPermissionAndPickImage()
         }
 
+        // Кнопка открытия камеры
         binding.btnScanWithCamera.setOnClickListener {
             openCameraScanner()
         }
 
+        // Кнопка фильтров
         binding.btnFilter.setOnClickListener {
             showFilterDialog()
         }
 
+        // Кнопка "Найти похожие"
         binding.btnFindSimilar.setOnClickListener {
             findSimilarProducts()
         }
 
+        // Кнопка "Поделиться"
         binding.btnShare.setOnClickListener {
             shareResults()
         }
     }
 
     private fun setupButtonAnimations() {
+        // Загружаем анимацию пульсации
         val pulseAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.pulse_scale)
 
+        // Добавляем слушатели касания для анимации кнопок
         binding.btnSelectImage.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 v.startAnimation(pulseAnimation)
@@ -205,7 +222,7 @@ class HomeFragment : Fragment() {
                 }
 
                 override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                    Toast.makeText(requireContext(), "Permission required to select image", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Необходимо разрешение для выбора изображения", Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest, token: PermissionToken) {
@@ -251,8 +268,8 @@ class HomeFragment : Fragment() {
                 activity?.runOnUiThread {
                     isProcessing = false
                     showLoading(false)
-                    Toast.makeText(requireContext(), "Image analysis error: ${e.message}", Toast.LENGTH_SHORT).show()
-                    Log.e(TAG, "Image analysis error", e)
+                    Toast.makeText(requireContext(), "Ошибка анализа изображения: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Ошибка анализа изображения", e)
                 }
             }
         })
@@ -280,52 +297,70 @@ class HomeFragment : Fragment() {
     private fun displayResult(searchQuery: SearchQuery) {
         val resultBuilder = StringBuilder()
 
-        resultBuilder.append("Search query: ").append(searchQuery.query).append("\n\n")
+        resultBuilder.append("Поисковый запрос: ").append(searchQuery.query).append("\n\n")
 
         if (searchQuery.productType.isNotEmpty()) {
-            resultBuilder.append("Product type: ").append(searchQuery.productType).append("\n\n")
+            resultBuilder.append("Тип товара: ").append(searchQuery.productType).append("\n\n")
         }
 
         if (searchQuery.brand.isNotEmpty()) {
-            resultBuilder.append("Brand: ").append(searchQuery.brand).append("\n\n")
+            resultBuilder.append("Бренд: ").append(searchQuery.brand).append("\n\n")
         }
 
         if (searchQuery.modelName.isNotEmpty()) {
-            resultBuilder.append("Model: ").append(searchQuery.modelName).append("\n\n")
+            resultBuilder.append("Модель: ").append(searchQuery.modelName).append("\n\n")
         }
 
         if (searchQuery.color.isNotEmpty()) {
-            resultBuilder.append("Color: ").append(searchQuery.color)
+            resultBuilder.append("Цвет: ").append(searchQuery.color)
         }
 
+        // Показываем весь контейнер результатов
         binding.resultsContainer.visibility = View.VISIBLE
-        binding.tvGarbageType.text = "Product analysis:"
+
+        // Обновляем содержимое результата
+        binding.tvGarbageType.text = "Анализ товара:"
         binding.tvInstructions.text = resultBuilder.toString().trim()
+
+        // Показываем дополнительную информацию
         binding.tvEstimatedCost.visibility = View.VISIBLE
-        binding.tvEstimatedCost.text = "Generated search query: \"${searchQuery.query}\""
+        binding.tvEstimatedCost.text = "Сформирован поисковый запрос: \"${searchQuery.query}\""
+
+        // Сохраняем текущий поисковый запрос
         currentSearchQuery = searchQuery.copy()
+
+        // Показываем кнопки действий и маркетплейсы
         showActionButtonsAndMarketplaces(searchQuery)
+
+        // Анимация появления результатов
         val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
         binding.resultsContainer.startAnimation(slideUpAnimation)
 
-        val toastMessage = StringBuilder("Product: ${searchQuery.productType}")
+        // Показываем информацию о результате в Toast
+        val toastMessage = StringBuilder("Товар: ${searchQuery.productType}")
         if (searchQuery.brand.isNotEmpty()) {
-            toastMessage.append(", Brand: ${searchQuery.brand}")
+            toastMessage.append(", Бренд: ${searchQuery.brand}")
         }
         Toast.makeText(requireContext(), toastMessage.toString(), Toast.LENGTH_LONG).show()
     }
 
-    private fun setupMarketplaceButtons(query: String) {}
+    private fun setupMarketplaceButtons(query: String) {
+        // Здесь ничего не делаем, так как теперь у нас RecyclerView вместо кнопок
+        // Всё взаимодействие настраивается в setupMarketplacesList
+    }
 
     private fun showFilterDialog(marketplaceType: MarketplaceType, query: String) {
         val dialogFragment = FilterDialogFragment.newInstance(marketplaceType, currentSearchQuery?.brand)
         dialogFragment.setFilterDialogListener(object : FilterDialogFragment.FilterDialogListener {
             override fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions, applyToAll: Boolean) {
                 if (applyToAll) {
-                    Toast.makeText(requireContext(), getString(R.string.filters_applied_all), Toast.LENGTH_SHORT).show()
+                    // Применяем фильтры ко всем маркетплейсам
+                Toast.makeText(requireContext(), getString(R.string.filters_applied_all), Toast.LENGTH_SHORT).show()
+                    // Обновляем адаптер с новыми фильтрами
                     val adapter = (binding.recyclerViewMarketplaces.adapter as? MarketplaceAdapter)
                     adapter?.updateFilters(filterOptions)
                 } else {
+                    // Строим URL с учетом фильтров и открываем его только для выбранного маркетплейса
                     val url = MarketplaceUrlBuilder.buildSearchUrl(marketplaceType, query, filterOptions)
                     openMarketplaceSearch(url)
                 }
@@ -339,12 +374,14 @@ class HomeFragment : Fragment() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to open browser: ${e.message}", Toast.LENGTH_SHORT).show()
-            Log.e(TAG, "URL opening error", e)
+            Toast.makeText(requireContext(), "Не удалось открыть браузер: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Ошибка при открытии URL", e)
         }
     }
 
     private fun showActionButtonsAndMarketplaces(searchQuery: SearchQuery) {
+        // Все элементы уже видимы, так как находятся в общем контейнере
+        // Нам нужно только настроить адаптер и содержимое
         setupMarketplacesList(searchQuery)
     }
 
@@ -356,8 +393,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun openMarketplace(marketplaceType: MarketplaceType, searchQuery: SearchQuery) {
+        // Используем MarketplaceAppChecker для проверки приложений и создания Intent
         val marketplaceAppChecker = MarketplaceAppChecker(requireContext())
-        val filterOptions = FilterOptions()
+        val filterOptions = FilterOptions() // Используем настройки по умолчанию
 
         try {
             val intent = marketplaceAppChecker.getMarketplaceIntent(
@@ -369,17 +407,19 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(
                 requireContext(),
-                "Failed to open marketplace: ${e.message}",
+                "Не удалось открыть маркетплейс: ${e.message}",
                 Toast.LENGTH_SHORT
             ).show()
-            Log.e(TAG, "Marketplace opening error", e)
+            Log.e(TAG, "Ошибка при открытии маркетплейса", e)
         }
     }
 
     private fun showFilterDialog() {
+        // Показываем диалог фильтров для всех маркетплейсов
         val dialogFragment = FilterDialogFragment.newInstance(MarketplaceType.WILDBERRIES, currentSearchQuery?.brand)
         dialogFragment.setFilterDialogListener(object : FilterDialogFragment.FilterDialogListener {
             override fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions, applyToAll: Boolean) {
+                // Применяем фильтры ко всем маркетплейсам
                 val adapter = (binding.recyclerViewMarketplaces.adapter as? MarketplaceAdapter)
                 adapter?.updateFilters(filterOptions)
                 Toast.makeText(requireContext(), getString(R.string.filters_applied), Toast.LENGTH_SHORT).show()
@@ -391,18 +431,19 @@ class HomeFragment : Fragment() {
     private fun findSimilarProducts() {
         Toast.makeText(
             requireContext(),
-            "Searching for similar products",
+            "Поиск похожих товаров",
             Toast.LENGTH_SHORT
         ).show()
+        // Здесь будет логика поиска похожих товаров
     }
 
     private fun shareResults() {
         try {
             val searchQuery = currentSearchQuery ?: return
-            val shareText = "I found this product using the Visual Search app: ${searchQuery.query}\n\n" +
-                    "Product type: ${searchQuery.productType}\n" +
-                    "Brand: ${searchQuery.brand}\n" +
-                    "Model: ${searchQuery.modelName}"
+            val shareText = "Я нашел этот товар в приложении Visual Search: ${searchQuery.query}\n\n" +
+                    "Тип товара: ${searchQuery.productType}\n" +
+                    "Бренд: ${searchQuery.brand}\n" +
+                    "Модель: ${searchQuery.modelName}"
 
             val shareIntent = Intent().apply {
                 action = Intent.ACTION_SEND
@@ -414,10 +455,10 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(
                 requireContext(),
-                "Failed to share: ${e.message}",
+                "Не удалось поделиться: ${e.message}",
                 Toast.LENGTH_SHORT
             ).show()
-            Log.e(TAG, "Sharing error", e)
+            Log.e(TAG, "Ошибка при отправке результатов", e)
         }
     }
 
