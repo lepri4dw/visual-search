@@ -43,7 +43,7 @@
                 app:cornerRadius="20dp" />
         </LinearLayout>
 
-        <!-- Диапазон цен слайдер -->
+        <!-- Диапазон цен с полями ввода -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,78 +53,48 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
             
-        <com.google.android.material.slider.RangeSlider
-            android:id="@+id/priceRangeSlider"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:valueFrom="0"
-            android:valueTo="500000"
-            android:stepSize="1000"
-            app:labelBehavior="withinBounds"
-            app:tickVisible="false"
-            app:haloColor="@color/green_primary"
-            app:thumbColor="@color/green_primary"
-            app:trackColorActive="@color/green_primary"
-            app:trackColorInactive="@color/text_secondary" />
-            
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="4dp">
+            android:layout_marginTop="8dp">
             
-            <TextView
-                android:id="@+id/tvMinPrice"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="0 ₽"
-                android:textColor="@color/text_primary" />
-                
-            <TextView
-                android:id="@+id/tvMaxPrice"
-                android:layout_width="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:hint="От"
+                app:boxStrokeColor="@color/green_primary"
+                app:hintTextColor="@color/green_primary"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMinPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
+            
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="500 000 ₽"
-                android:textColor="@color/text_primary" />
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:hint="До"
+                app:boxStrokeColor="@color/green_primary"
+                app:hintTextColor="@color/green_primary"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMaxPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-        <!-- Фильтр бренда -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="@string/brand"
-            app:boxStrokeColor="@color/green_primary"
-            app:hintTextColor="@color/green_primary"
-            app:startIconDrawable="@drawable/ic_filter"
-            app:startIconTint="@color/green_primary"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etBrand"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
-        
-        <!-- Фильтр цвета -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:hint="@string/color"
-            app:boxStrokeColor="@color/green_primary"
-            app:hintTextColor="@color/green_primary"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etColor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text" />
-        </com.google.android.material.textfield.TextInputLayout>
+        <!-- Поля для бренда и цвета удалены -->
 
         <!-- Сортировка -->
         <TextView
@@ -205,14 +175,7 @@
                 android:orientation="vertical"
                 android:padding="8dp">
             
-                <CheckBox
-                    android:id="@+id/cbDeliveryToday"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Доставка сегодня"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/green_primary"
-                    android:paddingVertical="4dp" />
+                <!-- Быстрая доставка удалена -->
 
                 <CheckBox
                     android:id="@+id/cbDiscount"
@@ -222,6 +185,22 @@
                     android:textColor="@color/text_primary"
                     android:buttonTint="@color/green_primary"
                     android:paddingVertical="4dp" />
+                <!-- Скрытые элементы для совместимости -->
+                <CheckBox
+                    android:id="@+id/cbDeliveryToday"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+                <EditText
+                    android:id="@+id/etBrand"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
+                <EditText
+                    android:id="@+id/etColor"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
             

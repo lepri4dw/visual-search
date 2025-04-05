@@ -40,20 +40,13 @@ object MarketplaceUrlBuilder {
 
         // Добавляем параметры фильтрации если они установлены
         
-        // Диапазон цен
-        if (filterOptions.priceFrom != null) {
-            urlBuilder.appendQueryParameter("priceU", "${filterOptions.priceFrom}00;") // Умножаем на 100 для копеек
-        }
-        
-        if (filterOptions.priceTo != null) {
-            val priceFromParam = urlBuilder.build().getQueryParameter("priceU") ?: "0;"
-            val newPriceParam = if (priceFromParam.endsWith(";")) {
-                priceFromParam + "${filterOptions.priceTo}00"
-            } else {
-                "${filterOptions.priceFrom ?: 0}00;${filterOptions.priceTo}00"
-            }
-            
-            urlBuilder.appendQueryParameter("priceU", newPriceParam)
+        // Диапазон цен в правильном формате priceU=min;max
+        if (filterOptions.priceFrom != null || filterOptions.priceTo != null) {
+            val minPrice = filterOptions.priceFrom ?: 0
+            val maxPrice = filterOptions.priceTo ?: FilterOptions.MAX_PRICE
+            // Цены на Wildberries указываются в копейках (умножаем на 100)
+            val priceParam = "${minPrice}00;${maxPrice}00"
+            urlBuilder.appendQueryParameter("priceU", priceParam)
         }
         
         // Бренд
@@ -77,7 +70,7 @@ object MarketplaceUrlBuilder {
         
         // Скидки
         if (filterOptions.discount) {
-            urlBuilder.appendQueryParameter("discount", "1")
+            urlBuilder.appendQueryParameter("action", "202422")
         }
         
         return urlBuilder.build().toString()
@@ -95,13 +88,16 @@ object MarketplaceUrlBuilder {
             .appendQueryParameter("text", query)
             .appendQueryParameter("from_global", "true") // Обязательный параметр для корректной работы поиска
         
-
-        if (filterOptions.priceFrom != null) {
-            urlBuilder.appendQueryParameter("from_price", filterOptions.priceFrom.toString())
-        }
-        
-        if (filterOptions.priceTo != null) {
-            urlBuilder.appendQueryParameter("to_price", filterOptions.priceTo.toString())
+        // Цена (используем формат currency_price=min;max)
+        if (filterOptions.priceFrom != null && filterOptions.priceTo != null) {
+            val priceParam = "${filterOptions.priceFrom}.000;${filterOptions.priceTo}.000"
+            urlBuilder.appendQueryParameter("currency_price", priceParam)
+        } else if (filterOptions.priceFrom != null) {
+            val priceParam = "${filterOptions.priceFrom}.000;"
+            urlBuilder.appendQueryParameter("currency_price", priceParam)
+        } else if (filterOptions.priceTo != null) {
+            val priceParam = ";${filterOptions.priceTo}.000"
+            urlBuilder.appendQueryParameter("currency_price", priceParam)
         }
         
         // Бренд
@@ -126,7 +122,7 @@ object MarketplaceUrlBuilder {
         
         // Скидки
         if (filterOptions.discount) {
-            urlBuilder.appendQueryParameter("discount", "1")
+            urlBuilder.appendQueryParameter("action", "202422")
         }
         
         return urlBuilder.build().toString()

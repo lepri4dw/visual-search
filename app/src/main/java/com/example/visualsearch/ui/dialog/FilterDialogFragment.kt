@@ -16,7 +16,7 @@ import com.example.visualsearch.databinding.DialogMarketplaceFiltersBinding
 import com.example.visualsearch.model.FilterOptions
 import com.example.visualsearch.model.MarketplaceType
 import com.example.visualsearch.model.SortType
-import com.google.android.material.slider.RangeSlider
+import com.google.android.material.textfield.TextInputEditText
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
@@ -88,17 +88,14 @@ class FilterDialogFragment : DialogFragment() {
         // Инициализация слайдера цен
         setupPriceRangeSlider()
         
-        // Предзаполняем поле бренда, если он был определен при анализе
+        // Бренд и цвет определяются автоматически без возможности ручного ввода
         val brand = arguments?.getString("brand")
         if (!brand.isNullOrEmpty()) {
-            binding.etBrand.setText(brand)
             filterOptions.brand = brand
         }
         
-        // Предзаполняем поле цвета, если он был определен при анализе
         val color = arguments?.getString("color")
         if (!color.isNullOrEmpty()) {
-            binding.etColor.setText(color)
             filterOptions.color = color
         }
         
@@ -106,97 +103,95 @@ class FilterDialogFragment : DialogFragment() {
     }
     
     private fun setupPriceRangeSlider() {
-        // Настройка слайдера диапазона цен
-        with(binding.priceRangeSlider) {
-            valueFrom = FilterOptions.MIN_PRICE.toFloat()
-            valueTo = FilterOptions.MAX_PRICE.toFloat()
-            stepSize = FilterOptions.PRICE_STEP.toFloat()
-            values = listOf(FilterOptions.MIN_PRICE.toFloat(), FilterOptions.MAX_PRICE.toFloat())
-            
-            // Обработчик изменения значений
-            addOnChangeListener { slider, _, _ ->
-                val values = slider.values
-                updatePriceLabels(values[0].toInt(), values[1].toInt())
-                
-                // Обновляем фильтры
-                filterOptions.priceFrom = values[0].toInt()
-                filterOptions.priceTo = values[1].toInt()
-            }
-        }
+        // Настройка полей ввода для диапазона цен
+        binding.etMinPrice.setText(FilterOptions.MIN_PRICE.toString())
+        binding.etMaxPrice.setText(FilterOptions.MAX_PRICE.toString())
         
-        // Инициализация текстовых меток с начальными значениями
-        updatePriceLabels(FilterOptions.MIN_PRICE, FilterOptions.MAX_PRICE)
-    }
-    
-    private fun updatePriceLabels(minPrice: Int, maxPrice: Int) {
-        binding.tvMinPrice.text = currencyFormatter.format(minPrice)
-        binding.tvMaxPrice.text = currencyFormatter.format(maxPrice)
+        // Сразу устанавливаем значения по умолчанию в фильтр
+        filterOptions.priceFrom = FilterOptions.MIN_PRICE
+        filterOptions.priceTo = FilterOptions.MAX_PRICE
+        
+        // Обработчик изменения значений минимальной цены
+        binding.etMinPrice.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                try {
+                    val minPrice = if (s.isNullOrEmpty()) FilterOptions.MIN_PRICE else s.toString().toInt()
+                    filterOptions.priceFrom = minPrice
+                } catch (e: NumberFormatException) {
+                    // Если введено некорректное значение, установим значение по умолчанию
+                    binding.etMinPrice.setText(FilterOptions.MIN_PRICE.toString())
+                    filterOptions.priceFrom = FilterOptions.MIN_PRICE
+                }
+            }
+        })
+        
+        // Обработчик изменения значений максимальной цены
+        binding.etMaxPrice.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                try {
+                    // Если поле пустое, всегда устанавливаем 500 000
+                    val maxPrice = if (s.isNullOrEmpty()) FilterOptions.MAX_PRICE else s.toString().toInt()
+                    filterOptions.priceTo = maxPrice
+                } catch (e: NumberFormatException) {
+                    // Если введено некорректное значение, установим значение по умолчанию
+                    binding.etMaxPrice.setText(FilterOptions.MAX_PRICE.toString())
+                    filterOptions.priceTo = FilterOptions.MAX_PRICE
+                }
+            }
+        })
     }
     
     private fun setupMarketplaceSpecificUI() {
         when (marketplaceType) {
             MarketplaceType.WILDBERRIES -> {
                 // Настройки для Wildberries
-                binding.etBrand.hint = "Фильтр по бренду"
                 binding.rbPopularity.text = "По популярности"
                 binding.rbPriceAsc.text = "По возрастанию цены"
                 binding.rbPriceDesc.text = "По убыванию цены"
                 binding.rbRating.text = "По рейтингу"
-                binding.cbDeliveryToday.text = "Быстрая доставка"
                 binding.cbDiscount.text = "Товары со скидкой"
             }
             MarketplaceType.OZON -> {
                 // Настройки для Ozon
-                binding.etBrand.hint = "Фильтр по бренду"
                 binding.rbPopularity.text = "По популярности"
                 binding.rbPriceAsc.text = "По возрастанию цены"
                 binding.rbPriceDesc.text = "По убыванию цены"
                 binding.rbRating.text = "По рейтингу"
-                binding.cbDeliveryToday.text = "Экспресс-доставка"
                 binding.cbDiscount.text = "Товары со скидкой"
             }
             MarketplaceType.LALAFO -> {
                 // Настройки для Lalafo
-                binding.etBrand.visibility = View.GONE
                 binding.rbPopularity.text = "По новизне"
                 binding.rbPriceAsc.text = "Сначала дешевле"
                 binding.rbPriceDesc.text = "Сначала дороже"
                 binding.rbRating.text = "По близости"
-                binding.cbDeliveryToday.visibility = View.GONE
                 binding.cbDiscount.visibility = View.GONE
             }
             MarketplaceType.ALI_EXPRESS -> {
                 // Настройки для AliExpress
-                binding.etBrand.hint = "Фильтр по бренду"
                 binding.rbPopularity.text = "По заказам"
                 binding.rbPriceAsc.text = "По возрастанию цены"
                 binding.rbPriceDesc.text = "По убыванию цены"
                 binding.rbRating.text = "По отзывам"
-                binding.cbDeliveryToday.text = "Бесплатная доставка"
                 binding.cbDiscount.text = "Распродажа"
             }
             MarketplaceType.BAZAR -> {
                 // Настройки для Bazar
-                binding.etBrand.visibility = View.GONE
                 binding.rbPopularity.text = "По дате"
                 binding.rbPriceAsc.text = "Сначала дешевле"
                 binding.rbPriceDesc.text = "Сначала дороже"
                 binding.rbRating.text = "По дате"
-                binding.cbDeliveryToday.visibility = View.GONE
                 binding.cbDiscount.visibility = View.GONE
             }
         }
     }
     
     private fun setupListeners() {
-        // Обработчики текстовых полей
-        binding.etBrand.doAfterTextChanged { text ->
-            filterOptions.brand = text.toString().takeIf { it.isNotEmpty() }
-        }
-        
-        binding.etColor.doAfterTextChanged { text ->
-            filterOptions.color = text.toString().takeIf { it.isNotEmpty() }
-        }
+        // Поля для ввода бренда и цвета удалены
         
         // Обработчик переключателей сортировки
         binding.rgSort.setOnCheckedChangeListener { _, checkedId ->
@@ -209,10 +204,7 @@ class FilterDialogFragment : DialogFragment() {
             }
         }
         
-        // Обработчики чекбоксов
-        binding.cbDeliveryToday.setOnCheckedChangeListener { _, isChecked ->
-            filterOptions.deliveryToday = isChecked
-        }
+        // Поле быстрой доставки удалено
         
         binding.cbDiscount.setOnCheckedChangeListener { _, isChecked ->
             filterOptions.discount = isChecked
