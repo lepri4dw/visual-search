@@ -84,7 +84,7 @@
                     android:id="@+id/tvPlaceholder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Нет изображения"
+                    android:text="@string/no_image"
                     android:textColor="@color/text_secondary"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -108,7 +108,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Анализируем изображение..."
+                    android:text="@string/analyzing_image"
                     android:textColor="@color/green_primary"
                     android:textSize="16sp"
                     android:textStyle="bold"
@@ -128,7 +128,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:orientation="horizontal"
-            app:layout_constraintBottom_toTopOf="@+id/cardResult"
+            app:layout_constraintBottom_toTopOf="@+id/resultsContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
@@ -141,7 +141,7 @@
                 android:backgroundTint="@color/green_primary"
                 android:drawableTop="@drawable/ic_gallery"
                 android:padding="12dp"
-                android:text="Из галереи"
+                android:text="@string/from_gallery"
                 android:textColor="@color/text_on_primary"
                 android:textAllCaps="false" />
 
@@ -154,131 +154,193 @@
                 android:backgroundTint="@color/green_primary"
                 android:drawableTop="@drawable/ic_camera"
                 android:padding="12dp"
-                android:text="Камера"
+                android:text="@string/camera"
                 android:textColor="@color/text_on_primary"
                 android:textAllCaps="false" />
         </LinearLayout>
-
-        <!-- Результат анализа -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardResult"
+        
+        <!-- Новый контейнер для результатов анализа и маркетплейсов -->
+        <LinearLayout
+            android:id="@+id/resultsContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
+            android:orientation="vertical"
             android:visibility="gone"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/card_background"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-            <LinearLayout
+            <!-- Результат анализа -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardResult"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/card_background">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Результат анализа"
-                    android:textColor="@color/green_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="60dp"
-                    android:layout_height="3dp"
-                    android:layout_marginTop="4dp"
-                    android:background="@color/green_primary" />
-
-                <TextView
-                    android:id="@+id/tvGarbageType"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:drawablePadding="8dp"
-                    android:drawableTint="@color/green_primary"
-                    android:text="Обнаруженные объекты:"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/tvInstructions"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:drawablePadding="8dp"
-                    android:drawableTint="@color/green_primary"
-                    android:text="Теги:"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/tvEstimatedCost"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:drawablePadding="8dp"
-                    android:drawableTint="@color/accent"
-                    android:text="Дополнительная информация:"
-                    android:textColor="@color/accent_dark"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <!-- Кнопки для поиска на маркетплейсах -->
                 <LinearLayout
-                    android:id="@+id/marketplaceButtonContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginTop="20dp"
-                    android:visibility="gone">
+                    android:padding="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/btnSearchWildberries"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        
+                        <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:backgroundTint="#CB11AB"
-                            android:text="Найти в Wildberries"
-                            android:textColor="@android:color/white"
-                            android:textAllCaps="false" />
-
-                        <Button
-                            android:id="@+id/btnSearchOzon"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="8dp"
-                            android:backgroundTint="#005BFF"
-                            android:text="Найти в Ozon"
-                            android:textColor="@android:color/white"
-                            android:textAllCaps="false" />
+                            android:text="@string/analyze_result"
+                            android:textColor="@color/green_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+                            
+                        <ImageButton
+                            android:id="@+id/btnCloseResults"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="?attr/selectableItemBackgroundBorderless" 
+                            android:src="@android:drawable/ic_menu_close_clear_cancel"
+                            android:tint="@color/green_primary"
+                            android:contentDescription="Закрыть" />
                     </LinearLayout>
 
-                    <Button
-                        android:id="@+id/btnSearchLalafo"
+                    <View
+                        android:layout_width="60dp"
+                        android:layout_height="3dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@color/green_primary" />
+
+                    <TextView
+                        android:id="@+id/tvGarbageType"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:backgroundTint="#FF9800"
-                        android:text="Найти в Lalafo"
-                        android:textColor="@android:color/white"
-                        android:textAllCaps="false" />
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                        android:layout_marginTop="16dp"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="@color/green_primary"
+                        android:text="Обнаруженные объекты:"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp" />
 
+                    <TextView
+                        android:id="@+id/tvInstructions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="@color/green_primary"
+                        android:text="Теги:"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvEstimatedCost"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="@color/accent"
+                        android:text="Дополнительная информация:"
+                        android:textColor="@color/accent_dark"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Кнопки дополнительных действий -->
+            <LinearLayout
+                android:id="@+id/actionButtonsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp">
+
+                <Button
+                    android:id="@+id/btnFindSimilar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="@color/accent"
+                    android:text="@string/find_similar"
+                    android:textColor="@color/text_on_primary"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btnShare"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="@color/accent"
+                    android:text="@string/share"
+                    android:textColor="@color/text_on_primary"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <!-- Заголовок для маркетплейсов -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/white">
+                
+                <LinearLayout
+                    android:id="@+id/marketplacesHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/find_on_marketplaces"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFilter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:backgroundTint="@color/accent"
+                        android:text="@string/filters"
+                        android:textColor="@color/text_on_primary"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_filter"
+                        app:iconTint="@color/text_on_primary"
+                        app:iconGravity="textStart"
+                        app:cornerRadius="24dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- RecyclerView для карточек маркетплейсов -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewMarketplaces"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

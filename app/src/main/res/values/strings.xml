@@ -4,4 +4,41 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="gemini_api_key">AIzaSyCl8qzbbpDJ-ltNr_86SSFMTnbC6vhXvCk</string>
+
+    <!-- Фильтры -->
+    <string name="filters">Фильтры</string>
+    <string name="filters_applied">Фильтры успешно применены</string>
+    <string name="filters_applied_all">Фильтры применены ко всем маркетплейсам</string>
+    <string name="price_range">Диапазон цен:</string>
+    <string name="price_from">От</string>
+    <string name="price_to">До</string>
+    <string name="brand">Бренд</string>
+    <string name="color">Цвет</string>
+    <string name="sorting">Сортировка:</string>
+    <string name="sort_popularity">По популярности</string>
+    <string name="sort_price_asc">По возрастанию цены</string>
+    <string name="sort_price_desc">По убыванию цены</string>
+    <string name="sort_rating">По рейтингу</string>
+    <string name="apply_to_all">Применить ко всем маркетплейсам</string>
+    <string name="cancel">Отмена</string>
+    <string name="apply">Применить</string>
+    <string name="done">Готово</string>
+    <string name="processing">Обработка...</string>
+    
+    <!-- Маркетплейсы -->
+    <string name="find_on_marketplaces">Найти товар на маркетплейсах</string>
+    <string name="wildberries">Wildberries</string>
+    <string name="ozon">Ozon</string>
+    <string name="lalafo">Lalafo</string>
+    <string name="aliexpress">AliExpress</string>
+    <string name="bazar">Bazar</string>
+    
+    <!-- Кнопки -->
+    <string name="share">Поделиться</string>
+    <string name="find_similar">Найти похожие</string>
+    <string name="from_gallery">Из галереи</string>
+    <string name="camera">Камера</string>
+    <string name="analyze_result">Результат анализа</string>
+    <string name="analyzing_image">Анализируем изображение...</string>
+    <string name="no_image">Нет изображения</string>
 </resources>

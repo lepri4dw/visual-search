@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -112,7 +113,7 @@ dependencies {
     implementation("androidx.concurrent:concurrent-futures:1.1.0")
 
     // For material design components
-    implementation("com.google.android.material:material:1.8.0")
+    implementation("com.google.android.material:material:1.10.0")
 
     // Glide для работы с изображениями
     implementation("com.github.bumptech.glide:glide:4.15.1")

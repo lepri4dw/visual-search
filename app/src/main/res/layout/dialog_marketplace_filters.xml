@@ -1,158 +1,274 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tvDialogTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Фильтры поиска"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_marginBottom="16dp"
-        android:gravity="center" />
-
-    <!-- Диапазон цен -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Диапазон цен:"
-        android:textStyle="bold"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp" />
+    android:fillViewport="true"
+    android:maxHeight="600dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@color/background">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
+        <!-- Заголовок -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:hint="От"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+            
+            <TextView
+                android:id="@+id/tvDialogTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Фильтры поиска"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/text_primary" />
+                
+            <Button
+                android:id="@+id/btnDone"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/done"
+                android:textColor="@color/white"
+                android:textAllCaps="false"
+                android:backgroundTint="@color/green_primary"
+                android:paddingHorizontal="16dp"
+                app:cornerRadius="20dp" />
+        </LinearLayout>
+
+        <!-- Диапазон цен слайдер -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/price_range"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+            
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/priceRangeSlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:valueFrom="0"
+            android:valueTo="500000"
+            android:stepSize="1000"
+            app:labelBehavior="withinBounds"
+            app:tickVisible="false"
+            app:haloColor="@color/green_primary"
+            app:thumbColor="@color/green_primary"
+            app:trackColorActive="@color/green_primary"
+            app:trackColorInactive="@color/text_secondary" />
+            
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+            
+            <TextView
+                android:id="@+id/tvMinPrice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0 ₽"
+                android:textColor="@color/text_primary" />
+                
+            <TextView
+                android:id="@+id/tvMaxPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="500 000 ₽"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Фильтр бренда -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/brand"
+            app:boxStrokeColor="@color/green_primary"
+            app:hintTextColor="@color/green_primary"
+            app:startIconDrawable="@drawable/ic_filter"
+            app:startIconTint="@color/green_primary"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPriceFrom"
+                android:id="@+id/etBrand"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number" />
+                android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
-
+        
+        <!-- Фильтр цвета -->
         <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:hint="До"
+            android:layout_marginTop="16dp"
+            android:hint="@string/color"
+            app:boxStrokeColor="@color/green_primary"
+            app:hintTextColor="@color/green_primary"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPriceTo"
+                android:id="@+id/etColor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number" />
+                android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Сортировка -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sorting"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/white"
+            android:layout_marginBottom="8dp">
+            
+            <RadioGroup
+                android:id="@+id/rgSort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <RadioButton
+                    android:id="@+id/rbPopularity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sort_popularity"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/green_primary"
+                    android:checked="true"
+                    android:paddingVertical="4dp" />
+
+                <RadioButton
+                    android:id="@+id/rbPriceAsc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sort_price_asc"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/green_primary"
+                    android:paddingVertical="4dp" />
+
+                <RadioButton
+                    android:id="@+id/rbPriceDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sort_price_desc"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/green_primary"
+                    android:paddingVertical="4dp" />
+
+                <RadioButton
+                    android:id="@+id/rbRating"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sort_rating"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/green_primary"
+                    android:paddingVertical="4dp" />
+            </RadioGroup>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Дополнительные фильтры -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/white"
+            android:layout_marginTop="8dp">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+            
+                <CheckBox
+                    android:id="@+id/cbDeliveryToday"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Доставка сегодня"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/green_primary"
+                    android:paddingVertical="4dp" />
+
+                <CheckBox
+                    android:id="@+id/cbDiscount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Товары со скидкой"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/green_primary"
+                    android:paddingVertical="4dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+            
+        <!-- Чекбокс применения фильтров ко всем маркетплейсам -->
+        <CheckBox
+            android:id="@+id/cbApplyToAll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/apply_to_all"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:buttonTint="@color/white"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/header_gradient_background"
+            android:padding="12dp" />
+
+        <!-- Кнопки действий -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp">
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/cancel"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/text_primary"
+                android:backgroundTint="@color/background"
+                android:textAllCaps="false"
+                app:cornerRadius="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <Button
+                android:id="@+id/btnApply"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/apply"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/green_primary"
+                android:textAllCaps="false"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
     </LinearLayout>
-
-    <!-- Фильтр бренда -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Бренд"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etBrand"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Сортировка -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Сортировка:"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp" />
-
-    <RadioGroup
-        android:id="@+id/rgSort"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <RadioButton
-            android:id="@+id/rbPopularity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="По популярности"
-            android:checked="true" />
-
-        <RadioButton
-            android:id="@+id/rbPriceAsc"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="По возрастанию цены" />
-
-        <RadioButton
-            android:id="@+id/rbPriceDesc"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="По убыванию цены" />
-
-        <RadioButton
-            android:id="@+id/rbRating"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="По рейтингу" />
-    </RadioGroup>
-
-    <!-- Дополнительные фильтры -->
-    <CheckBox
-        android:id="@+id/cbDeliveryToday"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Доставка сегодня"
-        android:layout_marginTop="16dp" />
-
-    <CheckBox
-        android:id="@+id/cbDiscount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Товары со скидкой" />
-
-    <!-- Кнопки действий -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="24dp">
-
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Отмена"
-            android:layout_marginEnd="8dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        <Button
-            android:id="@+id/btnApply"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Применить"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
-</LinearLayout>
+</ScrollView>

@@ -26,10 +26,13 @@ import com.example.visualsearch.R
 import com.example.visualsearch.databinding.FragmentHomeBinding
 import com.example.visualsearch.model.FilterOptions
 import com.example.visualsearch.model.MarketplaceType
+import com.example.visualsearch.util.MarketplaceUrlBuilder
 import com.example.visualsearch.remote.gemini.GeminiApiClient
 import com.example.visualsearch.remote.gemini.SearchQuery
 import com.example.visualsearch.ui.dialog.FilterDialogFragment
-import com.example.visualsearch.util.MarketplaceUrlBuilder
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.visualsearch.ui.adapter.MarketplaceAdapter
+import com.example.visualsearch.util.MarketplaceAppChecker
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -45,7 +48,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var geminiApiClient: GeminiApiClient
     private var isProcessing = false
-    private lateinit var currentSearchQuery: SearchQuery
+    private var currentSearchQuery: SearchQuery? = null
 
     // Лаунчер для выбора изображения из галереи
     private val imagePickerLauncher = registerForActivityResult(
@@ -104,9 +107,21 @@ class HomeFragment : Fragment() {
         // Инициализируем клиент Gemini API
         geminiApiClient = GeminiApiClient(getString(R.string.gemini_api_key))
 
+        // Настраиваем RecyclerView для маркетплейсов
+        setupRecyclerView()
+
         // Настраиваем кнопки
         setupButtons()
         setupButtonAnimations()
+        
+        // Добавляем обработчик для кнопки закрытия результатов
+        binding.btnCloseResults.setOnClickListener {
+            binding.resultsContainer.visibility = View.GONE
+        }
+    }
+
+    private fun setupRecyclerView() {
+        binding.recyclerViewMarketplaces.layoutManager = LinearLayoutManager(context)
     }
 
     private fun setupButtons() {
@@ -118,6 +133,21 @@ class HomeFragment : Fragment() {
         // Кнопка открытия камеры
         binding.btnScanWithCamera.setOnClickListener {
             openCameraScanner()
+        }
+
+        // Кнопка фильтров
+        binding.btnFilter.setOnClickListener {
+            showFilterDialog()
+        }
+
+        // Кнопка "Найти похожие"
+        binding.btnFindSimilar.setOnClickListener {
+            findSimilarProducts()
+        }
+
+        // Кнопка "Поделиться"
+        binding.btnShare.setOnClickListener {
+            shareResults()
         }
     }
 
@@ -228,8 +258,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun hideResult() {
-        binding.cardResult.visibility = View.GONE
-        binding.marketplaceButtonContainer.visibility = View.GONE
+        binding.resultsContainer.visibility = View.GONE
     }
 
     private fun displayResult(searchQuery: SearchQuery) {
@@ -253,6 +282,9 @@ class HomeFragment : Fragment() {
             resultBuilder.append("Цвет: ").append(searchQuery.color)
         }
 
+        // Показываем весь контейнер результатов
+        binding.resultsContainer.visibility = View.VISIBLE
+
         // Обновляем содержимое результата
         binding.tvGarbageType.text = "Анализ товара:"
         binding.tvInstructions.text = resultBuilder.toString().trim()
@@ -262,87 +294,43 @@ class HomeFragment : Fragment() {
         binding.tvEstimatedCost.text = "Сформирован поисковый запрос: \"${searchQuery.query}\""
 
         // Сохраняем текущий поисковый запрос
-        currentSearchQuery = searchQuery
+        currentSearchQuery = searchQuery.copy()
 
-        // Показываем кнопки маркетплейсов с анимацией
-        binding.marketplaceButtonContainer.visibility = View.VISIBLE
-        val fadeInAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in_buttons)
-        binding.marketplaceButtonContainer.startAnimation(fadeInAnimation)
-        
-        // Настраиваем действия для кнопок маркетплейсов
-        setupMarketplaceButtons(searchQuery.query)
+        // Показываем кнопки действий и маркетплейсы
+        showActionButtonsAndMarketplaces(searchQuery)
 
         // Анимация появления результатов
         val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
-        binding.cardResult.visibility = View.VISIBLE
-        binding.cardResult.startAnimation(slideUpAnimation)
+        binding.resultsContainer.startAnimation(slideUpAnimation)
 
         // Показываем информацию о результате в Toast
-        Toast.makeText(
-            requireContext(),
-            "Товар: ${searchQuery.productType}, Бренд: ${searchQuery.brand}",
-            Toast.LENGTH_LONG
-        ).show()
+        val toastMessage = StringBuilder("Товар: ${searchQuery.productType}")
+        if (searchQuery.brand.isNotEmpty()) {
+            toastMessage.append(", Бренд: ${searchQuery.brand}")
+        }
+        Toast.makeText(requireContext(), toastMessage.toString(), Toast.LENGTH_LONG).show()
     }
     
     private fun setupMarketplaceButtons(query: String) {
-        // Получаем анимацию пульсации
-        val pulseAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.pulse_scale)
-        
-        // Кнопка поиска в Wildberries
-        binding.btnSearchWildberries.setOnClickListener {
-            it.startAnimation(pulseAnimation)
-            showFilterDialog(MarketplaceType.WILDBERRIES, query)
-        }
-        
-        // Кнопка поиска в Ozon
-        binding.btnSearchOzon.setOnClickListener {
-            it.startAnimation(pulseAnimation)
-            showFilterDialog(MarketplaceType.OZON, query)
-        }
-        
-        // Кнопка поиска в Lalafo
-        binding.btnSearchLalafo.setOnClickListener {
-            it.startAnimation(pulseAnimation)
-            showFilterDialog(MarketplaceType.LALAFO, query)
-        }
-        
-        // Добавляем эффект касания для кнопок
-        binding.btnSearchWildberries.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                v.alpha = 0.8f
-            } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                v.alpha = 1.0f
-            }
-            false
-        }
-        
-        binding.btnSearchOzon.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                v.alpha = 0.8f
-            } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                v.alpha = 1.0f
-            }
-            false
-        }
-        
-        binding.btnSearchLalafo.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                v.alpha = 0.8f
-            } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                v.alpha = 1.0f
-            }
-            false
-        }
+        // Здесь ничего не делаем, так как теперь у нас RecyclerView вместо кнопок
+        // Всё взаимодействие настраивается в setupMarketplacesList
     }
     
     private fun showFilterDialog(marketplaceType: MarketplaceType, query: String) {
-        val dialogFragment = FilterDialogFragment.newInstance(marketplaceType, currentSearchQuery.brand)
+        val dialogFragment = FilterDialogFragment.newInstance(marketplaceType, currentSearchQuery?.brand)
         dialogFragment.setFilterDialogListener(object : FilterDialogFragment.FilterDialogListener {
-            override fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions) {
-                // Строим URL с учетом фильтров и открываем его
-                val url = MarketplaceUrlBuilder.buildSearchUrl(marketplaceType, query, filterOptions)
-                openMarketplaceSearch(url)
+            override fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions, applyToAll: Boolean) {
+                if (applyToAll) {
+                    // Применяем фильтры ко всем маркетплейсам
+                Toast.makeText(requireContext(), getString(R.string.filters_applied_all), Toast.LENGTH_SHORT).show()
+                    // Обновляем адаптер с новыми фильтрами
+                    val adapter = (binding.recyclerViewMarketplaces.adapter as? MarketplaceAdapter)
+                    adapter?.updateFilters(filterOptions)
+                } else {
+                    // Строим URL с учетом фильтров и открываем его только для выбранного маркетплейса
+                    val url = MarketplaceUrlBuilder.buildSearchUrl(marketplaceType, query, filterOptions)
+                    openMarketplaceSearch(url)
+                }
             }
         })
         dialogFragment.show(parentFragmentManager, "FilterDialog")
@@ -355,6 +343,89 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Не удалось открыть браузер: ${e.message}", Toast.LENGTH_SHORT).show()
             Log.e(TAG, "Ошибка при открытии URL", e)
+        }
+    }
+
+    private fun showActionButtonsAndMarketplaces(searchQuery: SearchQuery) {
+        // Все элементы уже видимы, так как находятся в общем контейнере
+        // Нам нужно только настроить адаптер и содержимое
+        setupMarketplacesList(searchQuery)
+    }
+    
+    private fun setupMarketplacesList(searchQuery: SearchQuery) {
+        val adapter = MarketplaceAdapter(requireContext(), searchQuery) { marketplaceType ->
+            openMarketplace(marketplaceType, searchQuery)
+        }
+        binding.recyclerViewMarketplaces.adapter = adapter
+    }
+    
+    private fun openMarketplace(marketplaceType: MarketplaceType, searchQuery: SearchQuery) {
+        // Используем MarketplaceAppChecker для проверки приложений и создания Intent
+        val marketplaceAppChecker = MarketplaceAppChecker(requireContext())
+        val filterOptions = FilterOptions() // Используем настройки по умолчанию
+        
+        try {
+            val intent = marketplaceAppChecker.getMarketplaceIntent(
+                marketplaceType,
+                searchQuery.query,
+                filterOptions
+            )
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "Не удалось открыть маркетплейс: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+            Log.e(TAG, "Ошибка при открытии маркетплейса", e)
+        }
+    }
+    
+    private fun showFilterDialog() {
+        // Показываем диалог фильтров для всех маркетплейсов
+        val dialogFragment = FilterDialogFragment.newInstance(MarketplaceType.WILDBERRIES, currentSearchQuery?.brand)
+        dialogFragment.setFilterDialogListener(object : FilterDialogFragment.FilterDialogListener {
+            override fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions, applyToAll: Boolean) {
+                // Применяем фильтры ко всем маркетплейсам
+                val adapter = (binding.recyclerViewMarketplaces.adapter as? MarketplaceAdapter)
+                adapter?.updateFilters(filterOptions)
+                Toast.makeText(requireContext(), getString(R.string.filters_applied), Toast.LENGTH_SHORT).show()
+            }
+        })
+        dialogFragment.show(parentFragmentManager, "FilterDialog")
+    }
+    
+    private fun findSimilarProducts() {
+        Toast.makeText(
+            requireContext(),
+            "Поиск похожих товаров",
+            Toast.LENGTH_SHORT
+        ).show()
+        // Здесь будет логика поиска похожих товаров
+    }
+    
+    private fun shareResults() {
+        try {
+            val searchQuery = currentSearchQuery ?: return
+            val shareText = "Я нашел этот товар в приложении Visual Search: ${searchQuery.query}\n\n" +
+                    "Тип товара: ${searchQuery.productType}\n" +
+                    "Бренд: ${searchQuery.brand}\n" +
+                    "Модель: ${searchQuery.modelName}"
+            
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, shareText)
+                type = "text/plain"
+            }
+            
+            startActivity(Intent.createChooser(shareIntent, "Поделиться результатами поиска"))
+        } catch (e: Exception) {
+            Toast.makeText(
+                requireContext(),
+                "Не удалось поделиться: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+            Log.e(TAG, "Ошибка при отправке результатов", e)
         }
     }
 

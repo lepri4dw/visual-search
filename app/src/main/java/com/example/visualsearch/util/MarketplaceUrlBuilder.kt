@@ -22,6 +22,8 @@ object MarketplaceUrlBuilder {
             MarketplaceType.WILDBERRIES -> buildWildberriesUrl(query, filterOptions)
             MarketplaceType.OZON -> buildOzonUrl(query, filterOptions)
             MarketplaceType.LALAFO -> buildLalafoUrl(query, filterOptions)
+            MarketplaceType.ALI_EXPRESS -> buildAliExpressUrl(query, filterOptions)
+            MarketplaceType.BAZAR -> buildBazarUrl(query, filterOptions)
         }
     }
 
@@ -93,9 +95,7 @@ object MarketplaceUrlBuilder {
             .appendQueryParameter("text", query)
             .appendQueryParameter("from_global", "true") // Обязательный параметр для корректной работы поиска
         
-        // Добавляем параметры фильтрации если они установлены
-        
-        // Диапазон цен
+
         if (filterOptions.priceFrom != null) {
             urlBuilder.appendQueryParameter("from_price", filterOptions.priceFrom.toString())
         }
@@ -160,6 +160,77 @@ object MarketplaceUrlBuilder {
             SortType.PRICE_ASC -> "cheap"
             SortType.PRICE_DESC -> "expensive"
             SortType.RATING -> "nearest"     // Lalafo не имеет сортировки по рейтингу
+        }
+        urlBuilder.appendQueryParameter("order", sort)
+        
+        return urlBuilder.build().toString()
+    }
+    
+    /**
+     * Формирует URL для поиска на AliExpress с учетом фильтров
+     */
+    private fun buildAliExpressUrl(
+        query: String,
+        filterOptions: FilterOptions
+    ): String {
+        val baseUrl = "https://aliexpress.ru/wholesale"
+        val urlBuilder = Uri.parse(baseUrl).buildUpon()
+            .appendQueryParameter("SearchText", query)
+        
+        // Диапазон цен
+        if (filterOptions.priceFrom != null) {
+            urlBuilder.appendQueryParameter("minPrice", filterOptions.priceFrom.toString())
+        }
+        
+        if (filterOptions.priceTo != null) {
+            urlBuilder.appendQueryParameter("maxPrice", filterOptions.priceTo.toString())
+        }
+        
+        // Сортировка
+        val sort = when (filterOptions.sortType) {
+            SortType.POPULARITY -> "orders"
+            SortType.PRICE_ASC -> "price_asc"
+            SortType.PRICE_DESC -> "price_desc"
+            SortType.RATING -> "feedback"
+        }
+        urlBuilder.appendQueryParameter("SortType", sort)
+        
+        // Скидки
+        if (filterOptions.discount) {
+            urlBuilder.appendQueryParameter("isFreeShip", "y")
+        }
+        
+        return urlBuilder.build().toString()
+    }
+    
+    /**
+     * Формирует URL для поиска на Bazar с учетом фильтров
+     */
+    private fun buildBazarUrl(
+        query: String,
+        filterOptions: FilterOptions
+    ): String {
+        val baseUrl = "https://www.bazar.kg/kyrgyzstan"
+        val urlBuilder = Uri.parse(baseUrl).buildUpon()
+            .appendQueryParameter("search", query)
+        
+        // Добавляем параметры фильтрации если они установлены
+        
+        // Диапазон цен
+        if (filterOptions.priceFrom != null) {
+            urlBuilder.appendQueryParameter("price_from", filterOptions.priceFrom.toString())
+        }
+        
+        if (filterOptions.priceTo != null) {
+            urlBuilder.appendQueryParameter("price_to", filterOptions.priceTo.toString())
+        }
+        
+        // Сортировка
+        val sort = when (filterOptions.sortType) {
+            SortType.POPULARITY -> "date"
+            SortType.PRICE_ASC -> "price_asc"
+            SortType.PRICE_DESC -> "price_desc"
+            SortType.RATING -> "date"
         }
         urlBuilder.appendQueryParameter("order", sort)
         

@@ -17,11 +17,3 @@ data class Content(
 data class Part(
     val text: String?
 )
-
-data class SearchQuery(
-    val query: String,
-    val productType: String,
-    val modelName: String,
-    val brand: String,
-    val color: String = ""
-)
