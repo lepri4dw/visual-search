@@ -527,20 +527,24 @@ class HomeFragment : Fragment() {
                 activity?.runOnUiThread {
                     isProcessing = false
                     showLoading(false)
-                    displayResult(searchQuery)
-                    historyViewModel.saveScanWithBitmap(searchQuery, bitmap)
 
-                    // Сохраняем оба варианта запросов
+                    // Use searchQueryResult.mainQuery instead of just searchQuery
+                    displayResult(searchQueryResult.mainQuery)
+
+                    // Save to history using mainQuery
+                    historyViewModel.saveScanWithBitmap(searchQueryResult.mainQuery, bitmap)
+
+                    // Save both query variants
                     currentSearchQuery = searchQueryResult.mainQuery
                     alternativeSearchQuery = searchQueryResult.alternativeQuery
 
-                    // Показываем основной результат
+                    // Show main result
                     displayResult(searchQueryResult.mainQuery)
 
-                    // Заполняем поле поиска основным запросом
+                    // Fill search field with main query
                     binding.etSearch.setText(searchQueryResult.mainQuery.query)
 
-                    // Сохраняем запрос в истории
+                    // Save query to history
                     addRecentSearch(searchQueryResult.mainQuery.query)
                 }
             }
