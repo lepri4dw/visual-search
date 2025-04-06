@@ -17,7 +17,7 @@ data class FilterOptions(
     companion object {
         // Минимальные и максимальные значения цен для слайдера
         const val MIN_PRICE = 0
-        const val MAX_PRICE = 500000
+        const val MAX_PRICE = 500000 // Всегда используем 500 000 как максимальную цену
         
         // Шаг цены
         const val PRICE_STEP = 1000
