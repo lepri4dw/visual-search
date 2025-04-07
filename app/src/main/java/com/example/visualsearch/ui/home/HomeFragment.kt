@@ -120,7 +120,8 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+// Initialize ScanHistoryViewModel
+        historyViewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
         // Инициализируем клиент Gemini API
         geminiApiClient = GeminiApiClient(getString(R.string.gemini_api_key))
 
