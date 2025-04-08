@@ -23,6 +23,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
@@ -111,11 +112,10 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
-
-        val root: View = binding.root
-        return root
+        val toolbar = binding.toolbar // Используем binding.toolbar
+        (requireActivity() as AppCompatActivity).setSupportActionBar(toolbar)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -511,6 +511,8 @@ class HomeFragment : Fragment() {
 
     private fun displayImage(bitmap: Bitmap) {
         binding.tvPlaceholder.visibility = View.GONE
+        binding.emptyIcon.visibility = View.GONE
+        binding.emptyStateContainer.visibility = View.GONE
         Glide.with(this).load(bitmap).into(binding.imageView)
     }
 
@@ -570,6 +572,9 @@ class HomeFragment : Fragment() {
             binding.progressBar.startAnimation(fadeAnimation)
             binding.tvLoading.startAnimation(fadeAnimation)
             binding.tvPlaceholder.visibility = View.GONE
+            binding.loadingContainer.visibility = View.VISIBLE // Добавляем эту строку
+        } else {
+            binding.loadingContainer.visibility = View.GONE // Добавляем эту строку
         }
 
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE

@@ -45,7 +45,7 @@ class GeminiApiClient(private val apiKey: String) {
         fun onSuccess(searchQuery: SearchQueryResult)
         fun onError(e: Exception)
     }
-
+    
     fun analyzeImage(bitmap: Bitmap, listener: GeminiApiListener) {
         try {
             // Convert bitmap to base64
