@@ -7,6 +7,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -14,11 +15,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.visualsearch.MainActivity
 import com.example.visualsearch.R
 import com.example.visualsearch.databinding.FragmentScanHistoryBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-class ScanHistoryFragment : Fragment(), MenuProvider {
+class ScanHistoryFragment : Fragment() {
 
     private var _binding: FragmentScanHistoryBinding? = null
     private val binding get() = _binding!!
@@ -41,8 +43,15 @@ class ScanHistoryFragment : Fragment(), MenuProvider {
         viewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
 
         setupRecyclerView()
-        setupActionMenu()
+        setupButtons()
         observeViewModel()
+        
+        // Анимация появления заголовка
+        val fadeIn = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_in)
+        fadeIn.duration = 1000
+        binding.textViewHistoryTitle.startAnimation(fadeIn)
+        binding.textViewHistorySubtitle.startAnimation(fadeIn)
+        binding.divider.startAnimation(fadeIn)
     }
 
     private fun setupRecyclerView() {
@@ -55,51 +64,62 @@ class ScanHistoryFragment : Fragment(), MenuProvider {
         binding.recyclerViewHistory.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@ScanHistoryFragment.adapter
+            
+            // Добавляем анимацию при прокрутке
+            postponeEnterTransition()
+            viewTreeObserver.addOnPreDrawListener {
+                startPostponedEnterTransition()
+                true
+            }
         }
     }
-
-    private fun setupActionMenu() {
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    
+    private fun setupButtons() {
+        // Настраиваем кнопку очистки истории
+        binding.buttonClearHistory.setOnClickListener {
+            showClearHistoryDialog()
+        }
+        
+        // Настраиваем кнопку "Начать поиск" для пустого состояния
+        binding.buttonStartScan?.setOnClickListener {
+            // Переходим на главный экран
+            findNavController().navigate(R.id.navigation_home)
+        }
     }
 
     private fun observeViewModel() {
         viewModel.allScans.observe(viewLifecycleOwner) { scans ->
             adapter.submitList(scans)
 
-            // Show empty view if no scans
+            // Показываем пустое состояние или список
             if (scans.isEmpty()) {
-                binding.textViewEmptyHistory.visibility = View.VISIBLE
+                binding.emptyStateLayout.visibility = View.VISIBLE
                 binding.recyclerViewHistory.visibility = View.GONE
             } else {
-                binding.textViewEmptyHistory.visibility = View.GONE
+                binding.emptyStateLayout.visibility = View.GONE
                 binding.recyclerViewHistory.visibility = View.VISIBLE
+                
+                // Анимируем список при обновлении
+                binding.recyclerViewHistory.scheduleLayoutAnimation()
             }
-        }
-    }
-
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.scan_history_menu, menu)
-    }
-
-    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        return when (menuItem.itemId) {
-            R.id.action_clear_history -> {
-                showClearHistoryDialog()
-                true
-            }
-            else -> false
         }
     }
 
     private fun showClearHistoryDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.clear_history)
-            .setMessage(R.string.clear_history_confirmation)
-            .setPositiveButton(R.string.clear) { _, _ ->
+            .setTitle("Очистить историю")
+            .setMessage("Вы уверены, что хотите удалить всю историю поиска?")
+            .setPositiveButton("Очистить") { _, _ ->
                 viewModel.clearHistory()
-                Toast.makeText(requireContext(), R.string.history_cleared, Toast.LENGTH_SHORT).show()
+                
+                // Анимируем переход к пустому состоянию
+                val fadeOut = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_out)
+                fadeOut.duration = 300
+                binding.recyclerViewHistory.startAnimation(fadeOut)
+                
+                Toast.makeText(requireContext(), "История очищена", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton(R.string.cancel, null)
+            .setNegativeButton("Отмена", null)
             .show()
     }
 

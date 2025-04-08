@@ -1,253 +1,319 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:fillViewport="true"
-    android:maxHeight="600dp">
+    android:background="@drawable/dialog_background_rounded">
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@color/background">
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Заголовок -->
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
-            
-            <TextView
-                android:id="@+id/tvDialogTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Фильтры поиска"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary" />
-                
-            <Button
-                android:id="@+id/btnDone"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="@string/done"
-                android:textColor="@color/white"
-                android:textAllCaps="false"
-                android:backgroundTint="@color/green_primary"
-                android:paddingHorizontal="16dp"
-                app:cornerRadius="20dp" />
-        </LinearLayout>
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:maxHeight="600dp">
 
-        <!-- Диапазон цен с полями ввода -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/price_range"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp" />
-            
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
-            
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:hint="От"
-                app:boxStrokeColor="@color/green_primary"
-                app:hintTextColor="@color/green_primary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etMinPrice"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
-            
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:hint="До"
-                app:boxStrokeColor="@color/green_primary"
-                app:hintTextColor="@color/green_primary"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etMaxPrice"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
-
-        <!-- Поля для бренда и цвета удалены -->
-
-        <!-- Сортировка -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/sorting"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/white"
-            android:layout_marginBottom="8dp">
-            
-            <RadioGroup
-                android:id="@+id/rgSort"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="8dp">
-
-                <RadioButton
-                    android:id="@+id/rbPopularity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sort_popularity"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/green_primary"
-                    android:checked="true"
-                    android:paddingVertical="4dp" />
-
-                <RadioButton
-                    android:id="@+id/rbPriceAsc"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sort_price_asc"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/green_primary"
-                    android:paddingVertical="4dp" />
-
-                <RadioButton
-                    android:id="@+id/rbPriceDesc"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sort_price_desc"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/green_primary"
-                    android:paddingVertical="4dp" />
-
-                <RadioButton
-                    android:id="@+id/rbRating"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sort_rating"
-                    android:textColor="@color/text_primary"
-                    android:buttonTint="@color/green_primary"
-                    android:paddingVertical="4dp" />
-            </RadioGroup>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Дополнительные фильтры -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/white"
-            android:layout_marginTop="8dp">
-            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="8dp">
-            
-                <!-- Быстрая доставка удалена -->
+                android:paddingHorizontal="24dp"
+                android:paddingVertical="24dp"
+                android:background="@color/surface">
 
-                <CheckBox
-                    android:id="@+id/cbDiscount"
+                <!-- Заголовок с улучшенным стилем -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Товары со скидкой"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="20dp">
+                    
+                    <TextView
+                        android:id="@+id/tvDialogTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Фильтры поиска"
+                        android:textStyle="bold"
+                        android:textSize="24sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary" />
+                        
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="@string/done"
+                        android:textColor="@color/text_on_primary"
+                        android:textAllCaps="false"
+                        android:backgroundTint="@color/primary"
+                        android:paddingHorizontal="16dp"
+                        app:cornerRadius="24dp"
+                        app:elevation="4dp"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+
+                <!-- Стильная линия-разделитель под заголовком -->
+                <View
+                    android:layout_width="40dp"
+                    android:layout_height="3dp"
+                    android:background="@color/primary"
+                    android:layout_marginBottom="24dp" />
+
+                <!-- Диапазон цен с полями ввода (с улучшенным стилем) -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/price_range"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
                     android:textColor="@color/text_primary"
-                    android:buttonTint="@color/green_primary"
-                    android:paddingVertical="4dp" />
-                <!-- Скрытые элементы для совместимости -->
-                <CheckBox
-                    android:id="@+id/cbDeliveryToday"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:visibility="gone" />
-                <EditText
-                    android:id="@+id/etBrand"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:visibility="gone" />
-                <EditText
-                    android:id="@+id/etColor"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:visibility="gone" />
+                    android:layout_marginBottom="12dp" />
+                    
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="20dp">
+                    
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:hint="От"
+                        app:boxStrokeColor="@color/primary"
+                        app:hintTextColor="@color/primary"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etMinPrice"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textColor="@color/text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:hint="До"
+                        app:boxStrokeColor="@color/primary"
+                        app:hintTextColor="@color/primary"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etMaxPrice"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textColor="@color/text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- Сортировка с улучшенным дизайном -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sorting"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="12dp" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/surface"
+                    android:layout_marginBottom="20dp">
+                    
+                    <RadioGroup
+                        android:id="@+id/rgSort"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <RadioButton
+                            android:id="@+id/rbPopularity"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/sort_popularity"
+                            android:textColor="@color/text_primary"
+                            android:buttonTint="@color/primary"
+                            android:checked="true"
+                            android:paddingVertical="8dp" 
+                            android:textSize="15sp"/>
+
+                        <RadioButton
+                            android:id="@+id/rbPriceAsc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/sort_price_asc"
+                            android:textColor="@color/text_primary"
+                            android:buttonTint="@color/primary"
+                            android:paddingVertical="8dp"
+                            android:textSize="15sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbPriceDesc"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/sort_price_desc"
+                            android:textColor="@color/text_primary"
+                            android:buttonTint="@color/primary"
+                            android:paddingVertical="8dp"
+                            android:textSize="15sp" />
+
+                        <RadioButton
+                            android:id="@+id/rbRating"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/sort_rating"
+                            android:textColor="@color/text_primary"
+                            android:buttonTint="@color/primary"
+                            android:paddingVertical="8dp"
+                            android:textSize="15sp" />
+                    </RadioGroup>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Дополнительные фильтры с улучшенным дизайном -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Дополнительные параметры"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="12dp" />
+                    
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/surface"
+                    android:layout_marginBottom="24dp">
+                    
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                    
+                        <CheckBox
+                            android:id="@+id/cbDiscount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Товары со скидкой"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:buttonTint="@color/primary"
+                            android:paddingVertical="8dp" />
+                        
+                        <!-- Скрытые элементы для совместимости -->
+                        <CheckBox
+                            android:id="@+id/cbDeliveryToday"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
+                        <EditText
+                            android:id="@+id/etBrand"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
+                        <EditText
+                            android:id="@+id/etColor"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                    
+                <!-- Чекбокс применения фильтров ко всем маркетплейсам - стильный дизайн -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/primary"
+                    android:layout_marginBottom="24dp">
+                    
+                    <CheckBox
+                        android:id="@+id/cbApplyToAll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/apply_to_all"
+                        android:textColor="@color/text_on_primary"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:buttonTint="@color/text_on_primary"
+                        android:padding="16dp" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Кнопки действий с улучшенным дизайном -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCancel"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:text="@string/cancel"
+                        android:layout_marginEnd="8dp"
+                        android:textColor="@color/primary"
+                        android:backgroundTint="@color/surface"
+                        android:textAllCaps="false"
+                        app:cornerRadius="28dp"
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp"
+                        android:fontFamily="sans-serif-medium"
+                        app:elevation="2dp"
+                        android:textSize="16sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnApply"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:text="@string/apply"
+                        android:layout_marginStart="8dp"
+                        android:textColor="@color/text_on_primary"
+                        android:backgroundTint="@color/primary"
+                        android:textAllCaps="false"
+                        app:cornerRadius="28dp"
+                        app:elevation="4dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textSize="16sp" />
+                </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-            
-        <!-- Чекбокс применения фильтров ко всем маркетплейсам -->
-        <CheckBox
-            android:id="@+id/cbApplyToAll"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/apply_to_all"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:buttonTint="@color/white"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/header_gradient_background"
-            android:padding="12dp" />
-
-        <!-- Кнопки действий -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="24dp">
-
-            <Button
-                android:id="@+id/btnCancel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/cancel"
-                android:layout_marginEnd="8dp"
-                android:textColor="@color/text_primary"
-                android:backgroundTint="@color/background"
-                android:textAllCaps="false"
-                app:cornerRadius="8dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-            <Button
-                android:id="@+id/btnApply"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/apply"
-                android:layout_marginStart="8dp"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/green_primary"
-                android:textAllCaps="false"
-                app:cornerRadius="8dp" />
-        </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+        </ScrollView>
+    </com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

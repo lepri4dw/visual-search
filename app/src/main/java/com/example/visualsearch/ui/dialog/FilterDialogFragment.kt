@@ -8,9 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowManager
 import android.widget.RadioButton
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.DialogFragment
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.example.visualsearch.R
 import com.example.visualsearch.databinding.DialogMarketplaceFiltersBinding
 import com.example.visualsearch.model.FilterOptions
@@ -21,7 +22,7 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 
-class FilterDialogFragment : DialogFragment() {
+class FilterDialogFragment : BottomSheetDialogFragment() {
     
     private var _binding: DialogMarketplaceFiltersBinding? = null
     private val binding get() = _binding!!
@@ -41,11 +42,8 @@ class FilterDialogFragment : DialogFragment() {
         fun onFilterOptionsSelected(marketplaceType: MarketplaceType, filterOptions: FilterOptions, applyToAll: Boolean)
     }
     
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = super.onCreateDialog(savedInstanceState)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_rounded_background)
-        return dialog
+    override fun getTheme(): Int {
+        return R.style.CustomBottomSheetDialog
     }
     
     override fun onCreateView(
@@ -59,6 +57,11 @@ class FilterDialogFragment : DialogFragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
+        // Установка полноэкранного режима
+        dialog?.window?.apply {
+            setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
+        }
         
         // Получаем аргументы
         arguments?.let {
@@ -85,7 +88,7 @@ class FilterDialogFragment : DialogFragment() {
             setupMarketplaceSpecificUI()
         }
         
-        // Инициализация слайдера цен
+        // Инициализация полей цен
         setupPriceRangeSlider()
         
         // Бренд и цвет определяются автоматически без возможности ручного ввода
@@ -191,8 +194,6 @@ class FilterDialogFragment : DialogFragment() {
     }
     
     private fun setupListeners() {
-        // Поля для ввода бренда и цвета удалены
-        
         // Обработчик переключателей сортировки
         binding.rgSort.setOnCheckedChangeListener { _, checkedId ->
             filterOptions.sortType = when (checkedId) {
@@ -203,8 +204,6 @@ class FilterDialogFragment : DialogFragment() {
                 else -> SortType.POPULARITY
             }
         }
-        
-        // Поле быстрой доставки удалено
         
         binding.cbDiscount.setOnCheckedChangeListener { _, isChecked ->
             filterOptions.discount = isChecked
@@ -230,9 +229,7 @@ class FilterDialogFragment : DialogFragment() {
         
         binding.btnApply.setOnClickListener {
             listener?.onFilterOptionsSelected(marketplaceType, filterOptions, applyToAll)
-            if (applyToAll) {
-                dismiss()
-            }
+            dismiss()
         }
     }
     

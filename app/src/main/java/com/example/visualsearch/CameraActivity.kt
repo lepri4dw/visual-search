@@ -38,12 +38,22 @@ class CameraActivity : AppCompatActivity() {
     private var scanLine: View? = null
     private var scanFrame: View? = null
     private var scanAnimation: Animation? = null
+    private var captureButtonAnimation: Animation? = null
+    private var buttonClose: FloatingActionButton? = null
+    private var loadingOverlay: View? = null
+    private var scanTip: TextView? = null
 
     private fun startScanAnimation() {
         scanLine?.let { line ->
             scanAnimation?.let { animation ->
                 line.startAnimation(animation)
             }
+        }
+        
+        // Apply pulse animation to the scan frame
+        scanFrame?.let { frame ->
+            val pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.scan_pulse_animation)
+            frame.startAnimation(pulseAnimation)
         }
     }
 
@@ -55,16 +65,20 @@ class CameraActivity : AppCompatActivity() {
             // Initialize UI components
             viewFinder = findViewById(R.id.viewFinder)
             captureButton = findViewById(R.id.capture_button)
+            buttonClose = findViewById(R.id.button_close)
             progressBar = findViewById(R.id.progressBar)
             statusText = findViewById(R.id.status_text)
+            scanTip = findViewById(R.id.scanTip)
+            loadingOverlay = findViewById(R.id.loadingOverlay)
 
             // Initialize scanning line and animation
             scanLine = findViewById(R.id.scanLine)
             scanFrame = findViewById(R.id.scanFrame)
             scanAnimation = AnimationUtils.loadAnimation(this, R.anim.scan_line_animation)
+            captureButtonAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse_capture_button)
 
-            val pulseButtonAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse_capture_button)
-            captureButton.startAnimation(pulseButtonAnimation)
+            // Apply animations
+            captureButton.startAnimation(captureButtonAnimation)
 
             // Check permissions
             if (allPermissionsGranted()) {
@@ -75,6 +89,11 @@ class CameraActivity : AppCompatActivity() {
 
             // Set up capture button
             captureButton.setOnClickListener { takePhoto() }
+            
+            // Set up close button
+            buttonClose?.setOnClickListener {
+                finish()
+            }
 
             // Start scan animation
             startScanAnimation()
@@ -124,7 +143,7 @@ class CameraActivity : AppCompatActivity() {
             // Bind camera to lifecycle
             cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
 
-            statusText.text = "Camera ready"
+            statusText.text = "Наведите камеру на товар"
         } catch (e: Exception) {
             Log.e(TAG, "Error binding camera: ", e)
             Toast.makeText(this, "Camera initialization error: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -144,9 +163,10 @@ class CameraActivity : AppCompatActivity() {
                 it.visibility = View.INVISIBLE
             }
 
-            // Show progress
-            progressBar.visibility = View.VISIBLE
-            statusText.text = "Taking photo..."
+            // Show progress overlay
+            loadingOverlay?.visibility = View.VISIBLE
+            statusText.text = "Обработка изображения..."
+            scanTip?.visibility = View.INVISIBLE
 
             // Create directory if needed
             val directory = filesDir
@@ -173,7 +193,7 @@ class CameraActivity : AppCompatActivity() {
                             // Check if file exists
                             if (!photoFile.exists() || photoFile.length() == 0L) {
                                 Log.e(TAG, "File was not created or is empty: ${photoFile.absolutePath}")
-                                progressBar.visibility = View.GONE
+                                loadingOverlay?.visibility = View.GONE
                                 Toast.makeText(this@CameraActivity, "Error saving image", Toast.LENGTH_SHORT).show()
                                 return
                             }
@@ -185,19 +205,19 @@ class CameraActivity : AppCompatActivity() {
                                 returnImageResult(bitmap)
                             } else {
                                 Log.e(TAG, "Failed to create bitmap from file")
-                                progressBar.visibility = View.GONE
+                                loadingOverlay?.visibility = View.GONE
                                 Toast.makeText(this@CameraActivity, "Error processing image", Toast.LENGTH_SHORT).show()
                             }
 
                         } catch (e: Exception) {
                             Log.e(TAG, "Error after saving image: ", e)
-                            progressBar.visibility = View.GONE
+                            loadingOverlay?.visibility = View.GONE
                             Toast.makeText(this@CameraActivity, "Image processing error: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
-                        progressBar.visibility = View.GONE
+                        loadingOverlay?.visibility = View.GONE
 
                         // Restart animation in case of error
                         scanLine?.let {
@@ -211,13 +231,13 @@ class CameraActivity : AppCompatActivity() {
                             "Error taking photo: ${exception.message}",
                             Toast.LENGTH_SHORT
                         ).show()
-                        statusText.text = "Ready to scan"
+                        statusText.text = "Наведите камеру на товар"
                     }
                 }
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error taking photo: ", e)
-            progressBar.visibility = View.GONE
+            loadingOverlay?.visibility = View.GONE
 
             // Restart animation in case of error
             scanLine?.let {

@@ -10,60 +10,155 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Добавляем рамку для сканирования -->
-    <View
-        android:id="@+id/scanFrame"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
-        android:background="@drawable/scan_frame"
+    <!-- Улучшенная рамка для сканирования с закругленными углами -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/scanFrameCard"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/primary"
+        app:strokeWidth="3dp"
+        app:cardBackgroundColor="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.4" />
+        app:layout_constraintVertical_bias="0.4">
 
-    <!-- Добавляем сканирующую линию -->
-    <View
-        android:id="@+id/scanLine"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:background="@drawable/scan_line"
-        app:layout_constraintEnd_toEndOf="@id/scanFrame"
-        app:layout_constraintStart_toStartOf="@id/scanFrame"
-        app:layout_constraintTop_toTopOf="@id/scanFrame" />
+        <View
+            android:id="@+id/scanFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/scan_frame" />
 
-    <TextView
-        android:id="@+id/status_text"
-        android:layout_width="wrap_content"
+        <!-- Сканирующая линия - сделаем её ярче и заметнее -->
+        <View
+            android:id="@+id/scanLine"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@drawable/scan_line" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Стильный статус-бар в верхней части экрана -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:background="#80000000"
-        android:padding="8dp"
-        android:text="Готов к сканированию"
-        android:textColor="@android:color/white"
+        app:cardBackgroundColor="#80000000"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="Поместите объект в рамку"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Информационная подсказка -->
+    <TextView
+        android:id="@+id/scanTip"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="32dp"
+        android:text="Для лучшего распознавания держите устройство ровно и убедитесь в хорошем освещении"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:background="#80000000"
+        android:padding="12dp"
+        android:fontFamily="sans-serif"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scanFrameCard" />
+
+    <!-- Улучшенная кнопка съемки с анимацией пульсации -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/capture_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="48dp"
         android:contentDescription="Сделать снимок"
         android:src="@android:drawable/ic_menu_camera"
+        app:backgroundTint="@color/primary"
+        app:fabCustomSize="72dp"
+        app:maxImageSize="36dp"
+        app:tint="@color/white"
+        app:borderWidth="4dp"
+        app:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <ProgressBar
-        android:id="@+id/progressBar"
+    <!-- Стильная кнопка для закрытия экрана камеры -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/button_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"
+        android:contentDescription="Закрыть"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:backgroundTint="#80000000"
+        app:fabSize="mini"
+        app:tint="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Улучшенный индикатор загрузки -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@color/surface"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="24dp">
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:indeterminateTint="@color/primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Обработка изображения..."
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

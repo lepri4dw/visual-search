@@ -9,6 +9,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -21,12 +22,13 @@ import com.example.visualsearch.R
 import com.example.visualsearch.databinding.FragmentScanDetailBinding
 import com.example.visualsearch.remote.gemini.SearchQuery
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ScanDetailFragment : Fragment(), MenuProvider {
+class ScanDetailFragment : Fragment() {
 
     private var _binding: FragmentScanDetailBinding? = null
     private val binding get() = _binding!!
@@ -49,38 +51,63 @@ class ScanDetailFragment : Fragment(), MenuProvider {
         viewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
         viewModel.getScanById(args.scanId)
 
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
-
         setupButtons()
+        setupAnimations()
 
         viewModel.selectedScan.observe(viewLifecycleOwner) { scan ->
             if (scan != null) {
                 val imageFile = File(scan.imagePath)
                 if (imageFile.exists()) {
-                    Glide.with(this).load(imageFile).into(binding.imageViewDetail)
+                    Glide.with(this)
+                        .load(imageFile)
+                        .centerCrop()
+                        .into(binding.imageViewDetail)
                 }
 
                 binding.textViewDetailProductType.text = scan.productType
                 binding.textViewDetailQuery.text = scan.query
-                binding.textViewDetailBrand.text = scan.brand
-                binding.textViewDetailModel.text = scan.modelName
-                binding.textViewDetailColor.text = scan.color
+                binding.textViewDetailBrand.text = scan.brand.ifEmpty { "Не определен" }
+                binding.textViewDetailModel.text = scan.modelName.ifEmpty { "Не определена" }
+                binding.textViewDetailColor.text = scan.color.ifEmpty { "Не определен" }
 
                 val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-                val formattedDate = scan.scanDate?.let { dateFormat.format(it) } ?: "N/A"
+                val formattedDate = scan.scanDate?.let { dateFormat.format(it) } ?: "Н/Д"
                 binding.textViewDetailDate.text = formattedDate
             }
         }
     }
 
     private fun setupButtons() {
+        // Кнопка просмотра в маркетплейсах
         binding.buttonRescan.setOnClickListener {
             navigateToHomeWithData()
         }
 
+        // Кнопка поделиться
+        binding.buttonShare.setOnClickListener {
+            shareItemInfo()
+        }
+
+        // Кнопка удаления
         binding.buttonDeleteScan.setOnClickListener {
             showDeleteConfirmationDialog()
         }
+
+        // Кнопка возврата назад
+        binding.fabBack.setOnClickListener {
+            findNavController().navigateUp()
+        }
+    }
+
+    private fun setupAnimations() {
+        // Анимации для карточек при появлении
+        val slideUp = AnimationUtils.loadAnimation(requireContext(), R.anim.item_animation_from_bottom)
+        slideUp.startOffset = 200
+        binding.cardViewDetails.startAnimation(slideUp)
+        
+        val slideUpLater = AnimationUtils.loadAnimation(requireContext(), R.anim.item_animation_from_bottom)
+        slideUpLater.startOffset = 400
+        binding.actionsCard.startAnimation(slideUpLater)
     }
 
     private fun navigateToHomeWithData() {
@@ -98,31 +125,45 @@ class ScanDetailFragment : Fragment(), MenuProvider {
         )
     }
 
-    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.scan_detail_menu, menu)
-    }
+    private fun shareItemInfo() {
+        val scan = viewModel.selectedScan.value ?: return
+        
+        try {
+            val shareText = "Найден товар: ${scan.productType}\n" +
+                    "Поисковый запрос: ${scan.query}\n" +
+                    "Бренд: ${scan.brand}\n" +
+                    "Модель: ${scan.modelName}\n" +
+                    "Цвет: ${scan.color}\n\n" +
+                    "Найдено с помощью приложения Visual Search"
 
-    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        return when (menuItem.itemId) {
-            R.id.action_delete_scan -> {
-                showDeleteConfirmationDialog()
-                true
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, shareText)
+                type = "text/plain"
             }
-            else -> false
+
+            startActivity(Intent.createChooser(shareIntent, "Поделиться информацией о товаре"))
+        } catch (e: Exception) {
+            Snackbar.make(binding.root, "Не удалось поделиться: ${e.message}", Snackbar.LENGTH_SHORT).show()
         }
     }
 
     private fun showDeleteConfirmationDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.delete_scan)
-            .setMessage(R.string.delete_scan_confirmation)
-            .setPositiveButton(R.string.delete) { _, _ ->
+            .setTitle("Удалить из истории")
+            .setMessage("Вы уверены, что хотите удалить этот товар из истории поиска?")
+            .setPositiveButton("Удалить") { _, _ ->
                 viewModel.selectedScan.value?.let { scan ->
                     viewModel.deleteScan(scan)
                     findNavController().navigateUp()
+                    
+                    // Показываем уведомление об успешном удалении
+                    Snackbar.make(requireActivity().findViewById(android.R.id.content), 
+                        "Товар удален из истории", Snackbar.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton(R.string.cancel, null)
+            .setNegativeButton("Отмена", null)
+            .setBackground(resources.getDrawable(R.drawable.dialog_background_rounded, null))
             .show()
     }
 
