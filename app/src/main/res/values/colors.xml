@@ -27,13 +27,6 @@
     <color name="ripple">#33000000</color>
     <color name="scrim">#52000000</color>
 
-    <!-- Marketplace Colors -->
-    <color name="marketplace_1">#5C6BC0</color>
-    <color name="marketplace_2">#26A69A</color>
-    <color name="marketplace_3">#FFA726</color>
-    <color name="marketplace_4">#EF5350</color>
-    <color name="marketplace_5">#7E57C2</color>
-
     <!-- System Colors -->
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
@@ -46,6 +39,15 @@
     <color name="bazar_color">#3F51B5</color>
     <color name="green_primary">#4CAF50</color>
     <color name="chip_background">#F0F0F0</color>
+
+    <color name="success_color">#4CAF50</color>
+    <color name="success_background">#E8F5E9</color>
+    <color name="error_color">#F44336</color>
+    <color name="error_background">#FFEBEE</color>
+    <color name="warning_color">#FFC107</color>
+    <color name="warning_background">#FFF8E1</color>
+    <color name="info_color">#2196F3</color>
+    <color name="info_background">#E3F2FD</color>
 
     <!-- Добавлен цвет для текста кнопки галереи в светлой теме -->
     <color name="gallery_button_text">#2196F3</color>

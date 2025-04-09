@@ -50,6 +50,8 @@ import java.io.IOException
 import com.example.visualsearch.ui.history.ScanHistoryViewModel
 import androidx.navigation.fragment.navArgs
 import androidx.room.util.query
+import com.example.visualsearch.util.CustomToast
+import com.example.visualsearch.util.ToastType
 
 class HomeFragment : Fragment() {
     private lateinit var historyViewModel: ScanHistoryViewModel
@@ -81,7 +83,7 @@ class HomeFragment : Fragment() {
                     displayImage(bitmap)
                     processImage(bitmap)
                 } catch (e: IOException) {
-                    Toast.makeText(requireContext(), "Ошибка загрузки изображения", Toast.LENGTH_SHORT).show()
+                    CustomToast.showToast(requireContext(), "Ошибка загрузки изображения", type = ToastType.ERROR)
                     Log.e(TAG, "Ошибка загрузки изображения из галереи", e)
                 }
             }
@@ -100,7 +102,7 @@ class HomeFragment : Fragment() {
                     displayImage(bitmap)
                     processImage(bitmap)
                 } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Ошибка загрузки изображения: ${e.message}", Toast.LENGTH_SHORT).show()
+                    CustomToast.showToast(requireContext(), "Ошибка загрузки изображения: ${e.message}", type = ToastType.ERROR)
                     Log.e(TAG, "Ошибка обработки результата с камеры", e)
                 }
             }
@@ -177,7 +179,7 @@ class HomeFragment : Fragment() {
                 Log.d(TAG, "Successfully processed navigation arguments")
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing navigation arguments", e)
-                Toast.makeText(requireContext(), "Error loading previous scan: ${e.message}", Toast.LENGTH_SHORT).show()
+                CustomToast.showToast(requireContext(), "Ошибка загрузки изображения: ${e.message}", type = ToastType.ERROR)
             }
         }
     }
@@ -188,14 +190,8 @@ class HomeFragment : Fragment() {
         val isFirstRun = sharedPreferences.getBoolean("first_run", true)
 
         if (isFirstRun) {
-            // Показываем приветственное сообщение
-            Toast.makeText(
-                requireContext(),
-                "Добро пожаловать! Введите текст для поиска или выберите изображение товара",
-                Toast.LENGTH_LONG
-            ).show()
+            CustomToast.showToast(requireContext(), "Добро пожаловать! Введите текст для поиска или выберите изображение товара", type = ToastType.INFO)
 
-            // Отмечаем, что приложение уже запускалось
             sharedPreferences.edit().putBoolean("first_run", false).apply()
         }
     }
@@ -223,7 +219,7 @@ class HomeFragment : Fragment() {
                 performSearch(query)
                 hideKeyboard()
             } else {
-                Toast.makeText(requireContext(), "Введите текст для поиска", Toast.LENGTH_SHORT).show()
+                CustomToast.showToast(requireContext(), "Введите текст для поиска", type = ToastType.INFO)
             }
         }
 
@@ -489,7 +485,7 @@ class HomeFragment : Fragment() {
                 }
 
                 override fun onPermissionDenied(response: PermissionDeniedResponse) {
-                    Toast.makeText(requireContext(), "Необходимо разрешение для выбора изображения", Toast.LENGTH_SHORT).show()
+                    CustomToast.showToast(requireContext(), "Необходимо разрешение для выбора изображения", type = ToastType.WARNING)
                 }
 
                 override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest, token: PermissionToken) {
@@ -558,7 +554,7 @@ class HomeFragment : Fragment() {
                 activity?.runOnUiThread {
                     isProcessing = false
                     showLoading(false)
-                    Toast.makeText(requireContext(), "Ошибка анализа изображения: ${e.message}", Toast.LENGTH_SHORT).show()
+                    CustomToast.showToast(requireContext(), "Ошибка анализа изображения: ${e.message}", type = ToastType.ERROR)
                     Log.e(TAG, "Ошибка анализа изображения", e)
                 }
             }
@@ -637,7 +633,7 @@ class HomeFragment : Fragment() {
         if (searchQuery.brand.isNotEmpty()) {
             toastMessage.append(", Бренд: ${searchQuery.brand}")
         }
-        Toast.makeText(requireContext(), toastMessage.toString(), Toast.LENGTH_LONG).show()
+        CustomToast.showToast(requireContext(), toastMessage.toString(), type = ToastType.SUCCESS)
     }
 
     private fun showFilterDialog() {
@@ -648,7 +644,8 @@ class HomeFragment : Fragment() {
                 // Применяем фильтры ко всем маркетплейсам
                 val adapter = (binding.recyclerViewMarketplaces.adapter as? MarketplaceAdapter)
                 adapter?.updateFilters(filterOptions)
-                Toast.makeText(requireContext(), getString(R.string.filters_applied), Toast.LENGTH_SHORT).show()
+
+                CustomToast.showToast(requireContext(), "Фильтры были успешно применены", type = ToastType.SUCCESS)
             }
         })
         dialogFragment.show(parentFragmentManager, "FilterDialog")
@@ -659,7 +656,7 @@ class HomeFragment : Fragment() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Не удалось открыть браузер: ${e.message}", Toast.LENGTH_SHORT).show()
+            CustomToast.showToast(requireContext(), "Не удалось открыть браузер: ${e.message}", type = ToastType.ERROR)
             Log.e(TAG, "Ошибка при открытии URL", e)
         }
     }
@@ -690,11 +687,7 @@ class HomeFragment : Fragment() {
             )
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(
-                requireContext(),
-                "Не удалось открыть маркетплейс: ${e.message}",
-                Toast.LENGTH_SHORT
-            ).show()
+            CustomToast.showToast(requireContext(), "Не удалось открыть маркетплейс: ${e.message}", type = ToastType.ERROR)
             Log.e(TAG, "Ошибка при открытии маркетплейса", e)
         }
     }
@@ -711,11 +704,7 @@ class HomeFragment : Fragment() {
             displayTextSearchResult(altQuery)
 
             // Уведомляем пользователя
-            Toast.makeText(
-                requireContext(),
-                "Поиск похожих товаров: ${altQuery.query}",
-                Toast.LENGTH_SHORT
-            ).show()
+            CustomToast.showToast(requireContext(), "Поиск похожих товаров: ${altQuery.query}", type = ToastType.SUCCESS)
         } else {
             // Если альтернативный запрос не найден, генерируем его
             val currentQuery = currentSearchQuery
@@ -743,18 +732,10 @@ class HomeFragment : Fragment() {
                 addRecentSearch(generalCategory)
 
                 // Уведомляем пользователя
-                Toast.makeText(
-                    requireContext(),
-                    "Поиск похожих товаров в категории: $generalCategory",
-                    Toast.LENGTH_SHORT
-                ).show()
+                CustomToast.showToast(requireContext(), "Поиск похожих товаров: ${altSearchQuery.query}", type = ToastType.SUCCESS)
             } else {
                 // Если текущий запрос отсутствует, сообщаем пользователю
-                Toast.makeText(
-                    requireContext(),
-                    "Сначала выполните поиск товара",
-                    Toast.LENGTH_SHORT
-                ).show()
+                CustomToast.showToast(requireContext(), "Сначала выполните поиск товара", type = ToastType.INFO)
             }
         }
     }
@@ -780,6 +761,7 @@ class HomeFragment : Fragment() {
                 "Не удалось поделиться: ${e.message}",
                 Toast.LENGTH_SHORT
             ).show()
+            CustomToast.showToast(requireContext(), "Не удалось поделиться: ${e.message}", type = ToastType.ERROR)
             Log.e(TAG, "Ошибка при отправке результатов", e)
         }
     }

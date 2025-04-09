@@ -100,23 +100,6 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
-    // Google Cloud Vision API
-    implementation("com.google.auth:google-auth-library-oauth2-http:1.15.0")
-    implementation("com.google.cloud:google-cloud-vision:3.7.0") {
-        exclude(group = "org.conscrypt", module = "conscrypt-openjdk-uber")
-    }
-    implementation("com.google.api:gax-grpc:2.22.0") {
-        exclude(group = "org.conscrypt", module = "conscrypt-openjdk-uber")
-    }
-
-    // gRPC - выбираем одну согласованную версию
-    implementation("io.grpc:grpc-okhttp:1.53.0")
-    implementation("io.grpc:grpc-android:1.53.0")
-    implementation("io.grpc:grpc-protobuf:1.53.0") {
-        exclude(group = "com.google.protobuf", module = "protobuf-lite")
-    }
-    implementation("io.grpc:grpc-stub:1.53.0")
-
     // For executing background tasks
     implementation("androidx.concurrent:concurrent-futures:1.1.0")
 

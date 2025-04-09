@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Visual Search</string>
-    <string name="title_home">Home</string>
+    <string name="app_name">AI-Поиск</string>
+    <string name="title_home">Главная</string>
     <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_notifications">История</string>
     <string name="gemini_api_key">AIzaSyCl8qzbbpDJ-ltNr_86SSFMTnbC6vhXvCk</string>
 
     <!-- Фильтры -->
@@ -42,7 +42,7 @@
     <string name="analyzing_image">Анализируем изображение...</string>
     <string name="no_image">Нет изображения</string>
 
-    <string name="history">History</string>
+    <string name="history">История</string>
     <string name="clear_history">Clear History</string>
     <string name="clear_history_confirmation">Are you sure you want to clear all scan history?</string>
     <string name="clear">Clear</string>

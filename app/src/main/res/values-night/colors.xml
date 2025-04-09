@@ -27,13 +27,6 @@
     <color name="ripple">#33FFFFFF</color>
     <color name="scrim">#52000000</color>
 
-    <!-- Marketplace Colors (slightly muted for dark theme) -->
-    <color name="marketplace_1">#3F51B5</color>
-    <color name="marketplace_2">#00897B</color>
-    <color name="marketplace_3">#F57C00</color>
-    <color name="marketplace_4">#D32F2F</color>
-    <color name="marketplace_5">#5E35B1</color>
-
     <!-- Добавлен цвет для текста кнопки галереи в темной теме -->
     <color name="gallery_button_text">#FFFFFF</color>
 </resources>

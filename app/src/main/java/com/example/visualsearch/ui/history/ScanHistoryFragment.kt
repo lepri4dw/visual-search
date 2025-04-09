@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.visualsearch.MainActivity
 import com.example.visualsearch.R
 import com.example.visualsearch.databinding.FragmentScanHistoryBinding
+import com.example.visualsearch.util.CustomToast
+import com.example.visualsearch.util.ToastType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class ScanHistoryFragment : Fragment() {
@@ -116,8 +118,8 @@ class ScanHistoryFragment : Fragment() {
                 val fadeOut = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_out)
                 fadeOut.duration = 300
                 binding.recyclerViewHistory.startAnimation(fadeOut)
-                
-                Toast.makeText(requireContext(), "История очищена", Toast.LENGTH_SHORT).show()
+
+                CustomToast.showToast(requireContext(), "История очищена", type = ToastType.SUCCESS)
             }
             .setNegativeButton("Отмена", null)
             .show()
