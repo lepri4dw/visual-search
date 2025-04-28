@@ -1,10 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Primary Colors -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_variant">#1976D2</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#64B5F6</color>
+
+    <!-- Secondary/Accent Colors -->
+    <color name="accent">#4FC3F7</color>
+    <color name="accent_dark">#29B6F6</color>
+
+    <!-- Background Colors -->
+    <color name="background">#F5F7FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="card_background">#FFFFFF</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_tertiary">#9E9E9E</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_on_accent">#FFFFFF</color>
+
+    <!-- Utility Colors -->
+    <color name="divider">#E0E0E0</color>
+    <color name="ripple">#33000000</color>
+    <color name="scrim">#52000000</color>
+
+    <!-- System Colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="wildberries_color">#CB11AB</color>
+    <color name="ozon_color">#005BFF</color>
+    <color name="lalafo_color">#FF9800</color>
+    <color name="aliexpress_color">#FF5722</color>
+    <color name="bazar_color">#3F51B5</color>
+    <color name="green_primary">#4CAF50</color>
+    <color name="chip_background">#F0F0F0</color>
+
+    <color name="success_color">#4CAF50</color>
+    <color name="success_background">#E8F5E9</color>
+    <color name="error_color">#F44336</color>
+    <color name="error_background">#FFEBEE</color>
+    <color name="warning_color">#FFC107</color>
+    <color name="warning_background">#FFF8E1</color>
+    <color name="info_color">#2196F3</color>
+    <color name="info_background">#E3F2FD</color>
+
+    <!-- Добавлен цвет для текста кнопки галереи в светлой теме -->
+    <color name="gallery_button_text">#2196F3</color>
 </resources>

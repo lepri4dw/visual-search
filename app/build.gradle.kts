@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-parcelize")
+    id("kotlin-kapt")
 }
 
 android {
@@ -30,6 +32,26 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    packaging {
+        resources {
+            excludes.add("META-INF/INDEX.LIST")
+            excludes.add("META-INF/DEPENDENCIES")
+            excludes.add("META-INF/LICENSE.txt")
+            excludes.add("META-INF/license.txt")
+            excludes.add("META-INF/NOTICE.txt")
+            excludes.add("META-INF/notice.txt")
+            excludes.add("META-INF/ASL2.0")
+            excludes.add("META-INF/*.proto")
+            excludes.add("META-INF/*.kotlin_module")
+            excludes.add("META-INF/MANIFEST.MF")
+
+            pickFirsts.add("META-INF/io.netty.versions.properties")
+            pickFirsts.add("META-INF/jersey-module-version")
+            pickFirsts.add("META-INF/services/javax.annotation.processing.Processor")
+        }
+    }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -40,6 +62,18 @@ android {
 
 dependencies {
 
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation ("com.android.volley:volley:1.2.1")
+
+    // Добавляем Retrofit для сетевых запросов
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
+    // GSON для работы с JSON
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -48,7 +82,34 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    
+    // Room Database
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.runtime.android)
+    kapt("androidx.room:room-compiler:2.7.0-rc03")
+    implementation("androidx.room:room-ktx:2.7.0-rc03") 
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // CameraX dependencies
+    val cameraxVersion = "1.2.3"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // For executing background tasks
+    implementation("androidx.concurrent:concurrent-futures:1.1.0")
+
+    // For material design components
+    implementation("com.google.android.material:material:1.10.0")
+
+    // Glide для работы с изображениями
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+
+    // Permissions
+    implementation("com.karumi:dexter:6.2.3")
 }

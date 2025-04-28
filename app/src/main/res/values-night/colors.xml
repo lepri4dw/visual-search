@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#1565C0</color>
+    <color name="primary_variant">#0D47A1</color>
+    <color name="primary_dark">#0A3880</color>
+    <color name="primary_light">#42A5F5</color>
+
+    <!-- Secondary/Accent Colors -->
+    <color name="accent">#29B6F6</color>
+    <color name="accent_dark">#0288D1</color>
+
+    <!-- Background Colors -->
+    <color name="background">#121212</color>
+    <color name="surface">#212121</color>
+    <color name="card_background">#1E1E1E</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B3FFFFFF</color> <!-- 70% white -->
+    <color name="text_tertiary">#80FFFFFF</color> <!-- 50% white -->
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_on_accent">#000000</color>
+
+    <!-- Utility Colors -->
+    <color name="divider">#1FFFFFFF</color> <!-- 12% white -->
+    <color name="ripple">#33FFFFFF</color>
+    <color name="scrim">#52000000</color>
+
+    <!-- Добавлен цвет для текста кнопки галереи в темной теме -->
+    <color name="gallery_button_text">#FFFFFF</color>
+</resources>
