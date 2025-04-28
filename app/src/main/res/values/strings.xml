@@ -3,7 +3,7 @@
     <string name="title_home">Главная</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">История</string>
-    <string name="gemini_api_key">AIzaSyCl8qzbbpDJ-ltNr_86SSFMTnbC6vhXvCk</string>
+    <string name="gemini_api_key">AIzaSyA5k5m8WY4ziIcZS6yzmXTP2ewOXM2CsdU</string>
 
     <!-- Фильтры -->
     <string name="filters">Фильтры</string>
