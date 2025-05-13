@@ -24,7 +24,7 @@
     <string name="apply">Применить</string>
     <string name="done">Готово</string>
     <string name="processing">Обработка...</string>
-    
+    <string name="profile">Профиль</string>
     <!-- Маркетплейсы -->
     <string name="find_on_marketplaces">Найти товар на маркетплейсах</string>
     <string name="wildberries">Wildberries</string>

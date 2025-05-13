@@ -27,6 +27,14 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.visualsearch.data.AppDatabase
+import com.example.visualsearch.data.entity.ScanHistoryEntity
+import com.example.visualsearch.data.repository.ScanHistoryRepository
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ScanDetailFragment : Fragment() {
 
@@ -35,6 +43,8 @@ class ScanDetailFragment : Fragment() {
 
     private lateinit var viewModel: ScanHistoryViewModel
     private val args: ScanDetailFragmentArgs by navArgs()
+    // LiveData для выбранного сканирования
+    private val _selectedScan = MutableLiveData<ScanHistoryEntity?>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,13 +58,27 @@ class ScanDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
-        viewModel.getScanById(args.scanId)
+        // Инициализация репозитория и фабрики для ViewModel
+        val scanHistoryDao = AppDatabase.getDatabase(requireContext()).scanHistoryDao()
+        val repository = ScanHistoryRepository(scanHistoryDao)
+        val factory = ScanHistoryViewModelFactory(requireActivity().application, repository)
+        
+        // Получаем ViewModel с использованием фабрики
+        viewModel = ViewModelProvider(this, factory).get(ScanHistoryViewModel::class.java)
+        
+        // Загружаем данные о сканировании
+        CoroutineScope(Dispatchers.Main).launch {
+            val scan = withContext(Dispatchers.IO) {
+                viewModel.getScanById(args.scanId)
+            }
+            _selectedScan.value = scan
+        }
 
         setupButtons()
         setupAnimations()
 
-        viewModel.selectedScan.observe(viewLifecycleOwner) { scan ->
+        // Наблюдаем за изменениями в данных сканирования
+        _selectedScan.observe(viewLifecycleOwner) { scan ->
             if (scan != null) {
                 val imageFile = File(scan.imagePath)
                 if (imageFile.exists()) {
@@ -111,7 +135,7 @@ class ScanDetailFragment : Fragment() {
     }
 
     private fun navigateToHomeWithData() {
-        val scan = viewModel.selectedScan.value ?: return
+        val scan = _selectedScan.value ?: return
 
         findNavController().navigate(
             ScanDetailFragmentDirections.actionScanDetailToNavigationHome(
@@ -126,7 +150,7 @@ class ScanDetailFragment : Fragment() {
     }
 
     private fun shareItemInfo() {
-        val scan = viewModel.selectedScan.value ?: return
+        val scan = _selectedScan.value ?: return
         
         try {
             val shareText = "Найден товар: ${scan.productType}\n" +
@@ -153,7 +177,7 @@ class ScanDetailFragment : Fragment() {
             .setTitle("Удалить из истории")
             .setMessage("Вы уверены, что хотите удалить этот товар из истории поиска?")
             .setPositiveButton("Удалить") { _, _ ->
-                viewModel.selectedScan.value?.let { scan ->
+                _selectedScan.value?.let { scan ->
                     viewModel.deleteScan(scan)
                     findNavController().navigateUp()
                     

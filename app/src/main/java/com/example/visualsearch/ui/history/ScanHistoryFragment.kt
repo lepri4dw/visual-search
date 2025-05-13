@@ -17,10 +17,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.visualsearch.MainActivity
 import com.example.visualsearch.R
+import com.example.visualsearch.data.AppDatabase
 import com.example.visualsearch.databinding.FragmentScanHistoryBinding
 import com.example.visualsearch.util.CustomToast
 import com.example.visualsearch.util.ToastType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.visualsearch.data.repository.ScanHistoryRepository
 
 class ScanHistoryFragment : Fragment() {
 
@@ -29,6 +31,11 @@ class ScanHistoryFragment : Fragment() {
 
     private lateinit var viewModel: ScanHistoryViewModel
     private lateinit var adapter: ScanHistoryAdapter
+
+    private val scanHistoryRepository by lazy {
+        val database = AppDatabase.getDatabase(requireContext()) // Получите ваш экземпляр базы данных Room
+        ScanHistoryRepository(database.scanHistoryDao())
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,12 +49,13 @@ class ScanHistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
+        val viewModelFactory = ScanHistoryViewModelFactory(requireActivity().application, scanHistoryRepository)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(ScanHistoryViewModel::class.java)
 
         setupRecyclerView()
         setupButtons()
         observeViewModel()
-        
+
         // Анимация появления заголовка
         val fadeIn = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_in)
         fadeIn.duration = 1000
@@ -66,7 +74,7 @@ class ScanHistoryFragment : Fragment() {
         binding.recyclerViewHistory.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@ScanHistoryFragment.adapter
-            
+
             // Добавляем анимацию при прокрутке
             postponeEnterTransition()
             viewTreeObserver.addOnPreDrawListener {
@@ -75,13 +83,13 @@ class ScanHistoryFragment : Fragment() {
             }
         }
     }
-    
+
     private fun setupButtons() {
         // Настраиваем кнопку очистки истории
         binding.buttonClearHistory.setOnClickListener {
             showClearHistoryDialog()
         }
-        
+
         // Настраиваем кнопку "Начать поиск" для пустого состояния
         binding.buttonStartScan?.setOnClickListener {
             // Переходим на главный экран
@@ -90,7 +98,7 @@ class ScanHistoryFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewModel.allScans.observe(viewLifecycleOwner) { scans ->
+        viewModel.userScans.observe(viewLifecycleOwner) { scans ->
             adapter.submitList(scans)
 
             // Показываем пустое состояние или список
@@ -100,7 +108,7 @@ class ScanHistoryFragment : Fragment() {
             } else {
                 binding.emptyStateLayout.visibility = View.GONE
                 binding.recyclerViewHistory.visibility = View.VISIBLE
-                
+
                 // Анимируем список при обновлении
                 binding.recyclerViewHistory.scheduleLayoutAnimation()
             }
@@ -112,8 +120,8 @@ class ScanHistoryFragment : Fragment() {
             .setTitle("Очистить историю")
             .setMessage("Вы уверены, что хотите удалить всю историю поиска?")
             .setPositiveButton("Очистить") { _, _ ->
-                viewModel.clearHistory()
-                
+                viewModel.deleteAllUserScans()
+
                 // Анимируем переход к пустому состоянию
                 val fadeOut = AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_out)
                 fadeOut.duration = 300

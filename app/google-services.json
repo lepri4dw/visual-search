@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "193919536671",
+    "project_id": "ai-search-8f65c",
+    "storage_bucket": "ai-search-8f65c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:193919536671:android:d45bccf037ec2aece0cf2a",
+        "android_client_info": {
+          "package_name": "com.example.visualsearch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8uk-E3C4KCClGqLiu2HImc4OtVC3YvMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

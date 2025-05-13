@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("kotlin-parcelize")
     id("kotlin-kapt")
+    id("com.google.gms.google-services") // Added for Firebase
 }
 
 android {
@@ -89,6 +90,13 @@ dependencies {
     kapt("androidx.room:room-compiler:2.7.0-rc03")
     implementation("androidx.room:room-ktx:2.7.0-rc03") 
     
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -112,4 +120,6 @@ dependencies {
 
     // Permissions
     implementation("com.karumi:dexter:6.2.3")
+
+    implementation ("de.hdodenhof:circleimageview:3.1.0")
 }

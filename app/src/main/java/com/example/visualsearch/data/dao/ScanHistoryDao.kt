@@ -11,6 +11,9 @@ interface ScanHistoryDao {
 
     @Query("SELECT * FROM scan_history ORDER BY scanDate DESC")
     fun getAllScans(): LiveData<List<ScanHistoryEntity>>
+    
+    @Query("SELECT * FROM scan_history WHERE userId = :userId ORDER BY scanDate DESC")
+    fun getScansByUserId(userId: String): LiveData<List<ScanHistoryEntity>>
 
     @Query("SELECT * FROM scan_history WHERE id = :scanId")
     suspend fun getScanById(scanId: Long): ScanHistoryEntity?
@@ -20,4 +23,7 @@ interface ScanHistoryDao {
 
     @Query("DELETE FROM scan_history")
     suspend fun deleteAllScans()
+    
+    @Query("DELETE FROM scan_history WHERE userId = :userId")
+    suspend fun deleteUserScans(userId: String)
 }

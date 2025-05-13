@@ -11,6 +11,7 @@ import java.util.Date
 data class ScanHistoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val userId: String, // ID пользователя из Firebase
     val query: String,
     val productType: String,
     val modelName: String,

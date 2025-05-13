@@ -1,4 +1,4 @@
-package com.example.visualsearch.ui.notifications
+package com.example.visualsearch.ui.profile
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.visualsearch.data.dao.ScanHistoryDao
 import com.example.visualsearch.data.entity.ScanHistoryEntity
 
-@Database(entities = [ScanHistoryEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ScanHistoryEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun scanHistoryDao(): ScanHistoryDao
 

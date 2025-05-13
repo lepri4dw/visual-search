@@ -50,6 +50,9 @@ import java.io.IOException
 import com.example.visualsearch.ui.history.ScanHistoryViewModel
 import androidx.navigation.fragment.navArgs
 import androidx.room.util.query
+import com.example.visualsearch.data.AppDatabase
+import com.example.visualsearch.data.repository.ScanHistoryRepository
+import com.example.visualsearch.ui.history.ScanHistoryViewModelFactory
 import com.example.visualsearch.util.CustomToast
 import com.example.visualsearch.util.ToastType
 
@@ -123,7 +126,10 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 // Initialize ScanHistoryViewModel
-        historyViewModel = ViewModelProvider(this).get(ScanHistoryViewModel::class.java)
+        val scanHistoryDao = AppDatabase.getDatabase(requireContext()).scanHistoryDao()
+        val scanHistoryRepository = ScanHistoryRepository(scanHistoryDao)
+        val factory = ScanHistoryViewModelFactory(requireActivity().application, scanHistoryRepository)
+        historyViewModel = ViewModelProvider(this, factory).get(ScanHistoryViewModel::class.java)
         // Инициализируем клиент Gemini API
         geminiApiClient = GeminiApiClient(getString(R.string.gemini_api_key))
 
