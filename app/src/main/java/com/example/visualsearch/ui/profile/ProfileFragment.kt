@@ -62,7 +62,28 @@ class ProfileFragment : Fragment() {
                 // Используем НОВОЕ действие, чтобы не очищать весь стек
                 if (findNavController().currentDestination?.id == R.id.navigation_profile) {
                     Log.d("ProfileFragment", "User null, redirecting via action_profile_redirect_unauthenticated_to_login") // Лог
-                    findNavController().navigate(R.id.action_profile_redirect_unauthenticated_to_login) // <-- ИСПОЛЬЗУЕМ НОВОЕ ДЕЙСТВИЕ
+                    
+                    // Проверяем правильность destination
+                    val isLoginDestinationValid = findNavController().graph.findNode(R.id.loginFragment) != null
+                    Log.d("ProfileFragment", "Is loginFragment destination valid: $isLoginDestinationValid")
+                    
+                    // Проверяем правильность action
+                    val actionExists = findNavController().currentDestination?.getAction(R.id.action_profile_redirect_unauthenticated_to_login) != null
+                    Log.d("ProfileFragment", "Does action exist: $actionExists")
+                    
+                    try {
+                        findNavController().navigate(R.id.action_profile_redirect_unauthenticated_to_login) // <-- ИСПОЛЬЗУЕМ НОВОЕ ДЕЙСТВИЕ
+                        Log.d("ProfileFragment", "Navigation executed successfully")
+                    } catch (e: Exception) {
+                        Log.e("ProfileFragment", "Navigation failed: ${e.message}", e)
+                        // Аварийный вариант - просто переход напрямую к фрагменту
+                        try {
+                            findNavController().navigate(R.id.loginFragment)
+                            Log.d("ProfileFragment", "Direct navigation to loginFragment executed")
+                        } catch (e2: Exception) {
+                            Log.e("ProfileFragment", "Direct navigation also failed: ${e2.message}", e2)
+                        }
+                    }
                 } else {
                     Log.d("ProfileFragment", "User null, but current destination is not Profile (${findNavController().currentDestination?.label}), no redirect.") // Лог
                 }

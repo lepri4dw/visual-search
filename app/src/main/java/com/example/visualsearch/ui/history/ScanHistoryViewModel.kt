@@ -2,22 +2,56 @@ package com.example.visualsearch.ui.history
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.visualsearch.auth.AuthManager
 import com.example.visualsearch.data.entity.ScanHistoryEntity
-import com.example.visualsearch.data.repository.ScanHistoryRepository
+import com.example.visualsearch.data.repository.FirestoreScanRepository
 import com.example.visualsearch.remote.gemini.SearchQuery
-import com.example.visualsearch.util.ImageSaver
 import kotlinx.coroutines.launch
 
 class ScanHistoryViewModel(
     application: Application,
-    private val scanHistoryRepository: ScanHistoryRepository
+    private val scanRepository: FirestoreScanRepository
 ) : AndroidViewModel(application) {
 
+    private val TAG = "ScanHistoryViewModel"
+    private val authManager = AuthManager.getInstance()
+    
+    // Оборачиваем userScans из репозитория в MediatorLiveData для мониторинга изменений
+    private val _mediatorUserScans = MediatorLiveData<List<ScanHistoryEntity>>()
+    
     // Получение списка сканирований текущего пользователя
-    val userScans: LiveData<List<ScanHistoryEntity>> = scanHistoryRepository.getUserScans()
+    val userScans: LiveData<List<ScanHistoryEntity>> = _mediatorUserScans
+    
+    init {
+        // Проверяем статус авторизации
+        val isLoggedIn = isUserLoggedIn()
+        Log.d(TAG, "ViewModel создан, пользователь авторизован: $isLoggedIn, userId: ${authManager.getCurrentUserId()}")
+        
+        // Добавляем источник и обработчик
+        _mediatorUserScans.addSource(scanRepository.userScans) { scans ->
+            Log.d(TAG, "Получены данные из репозитория: ${scans.size} элементов")
+            _mediatorUserScans.value = scans
+        }
+    }
+
+    /**
+     * Проверяет, авторизован ли пользователь
+     */
+    fun isUserLoggedIn(): Boolean {
+        return authManager.isLoggedIn()
+    }
+
+    /**
+     * Получает ID текущего пользователя
+     */
+    fun getCurrentUserId(): String {
+        return authManager.getCurrentUserId()
+    }
 
     /**
      * Добавление сканирования в историю
@@ -30,15 +64,18 @@ class ScanHistoryViewModel(
         color: String,
         imagePath: String
     ) {
-        viewModelScope.launch {
-            scanHistoryRepository.insertScan(
-                query,
-                productType,
-                modelName,
-                brand,
-                color,
-                imagePath
-            )
+        // Добавляем сканирование только если пользователь авторизован
+        if (isUserLoggedIn()) {
+            viewModelScope.launch {
+                scanRepository.insertScan(
+                    query,
+                    productType,
+                    modelName,
+                    brand,
+                    color,
+                    imagePath
+                )
+            }
         }
     }
 
@@ -46,8 +83,10 @@ class ScanHistoryViewModel(
      * Удаление сканирования из истории
      */
     fun deleteScan(scan: ScanHistoryEntity) {
-        viewModelScope.launch {
-            scanHistoryRepository.deleteScan(scan)
+        if (scan.id.isNotEmpty()) {
+            viewModelScope.launch {
+                scanRepository.deleteScan(scan.id)
+            }
         }
     }
 
@@ -56,33 +95,47 @@ class ScanHistoryViewModel(
      */
     fun deleteAllUserScans() {
         viewModelScope.launch {
-            scanHistoryRepository.deleteUserScans()
+            scanRepository.deleteUserScans()
         }
     }
 
     /**
      * Получение информации о сканировании по ID
      */
-    suspend fun getScanById(scanId: Long): ScanHistoryEntity? {
-        return scanHistoryRepository.getScanById(scanId)
+    suspend fun getScanById(scanId: String): ScanHistoryEntity? {
+        return scanRepository.getScanById(scanId)
     }
 
     /**
      * Сохранение сканирования с изображением
      */
     fun saveScanWithBitmap(searchQuery: SearchQuery, bitmap: Bitmap) {
-        val imagePath = ImageSaver.saveImageToInternalStorage(getApplication(), bitmap)
-        if (imagePath != null) {
+        // Сохраняем сканирование только если пользователь авторизован
+        if (isUserLoggedIn()) {
             viewModelScope.launch {
-                scanHistoryRepository.insertScan(
+                scanRepository.insertScanWithBitmap(
                     searchQuery.query,
                     searchQuery.productType,
                     searchQuery.modelName,
                     searchQuery.brand,
                     searchQuery.color,
-                    imagePath
+                    bitmap
                 )
             }
         }
+    }
+
+    /**
+     * Обновление списка сканирований пользователя
+     */
+    fun refreshUserScans() {
+        Log.d(TAG, "Обновление списка сканирований")
+        
+        // Проверяем статус авторизации
+        val isLoggedIn = isUserLoggedIn()
+        Log.d(TAG, "Пользователь авторизован: $isLoggedIn")
+        
+        // Обновляем слушатель в репозитории
+        scanRepository.updateUserScansListener()
     }
 }

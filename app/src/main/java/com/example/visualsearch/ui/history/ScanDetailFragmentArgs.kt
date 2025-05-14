@@ -6,10 +6,10 @@ import androidx.navigation.NavDirections
 import com.example.visualsearch.R
 import java.io.Serializable
 
-class ScanDetailFragmentArgs(val scanId: Long) : NavArgs {
+class ScanDetailFragmentArgs(val scanId: String) : NavArgs {
     fun toBundle(): Bundle {
         val bundle = Bundle()
-        bundle.putLong("scanId", scanId)
+        bundle.putString("scanId", scanId)
         return bundle
     }
 
@@ -24,7 +24,7 @@ class ScanDetailFragmentArgs(val scanId: Long) : NavArgs {
         @JvmStatic
         fun fromBundle(bundle: Bundle): ScanDetailFragmentArgs {
             bundle.classLoader = ScanDetailFragmentArgs::class.java.classLoader
-            return ScanDetailFragmentArgs(bundle.getLong("scanId"))
+            return ScanDetailFragmentArgs(bundle.getString("scanId", ""))
         }
     }
 }

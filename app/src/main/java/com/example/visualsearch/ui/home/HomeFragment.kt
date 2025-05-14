@@ -125,11 +125,11 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-// Initialize ScanHistoryViewModel
-        val scanHistoryDao = AppDatabase.getDatabase(requireContext()).scanHistoryDao()
-        val scanHistoryRepository = ScanHistoryRepository(scanHistoryDao)
-        val factory = ScanHistoryViewModelFactory(requireActivity().application, scanHistoryRepository)
+        
+        // Initialize ScanHistoryViewModel with FirestoreScanRepository
+        val factory = ScanHistoryViewModelFactory(requireActivity().application)
         historyViewModel = ViewModelProvider(this, factory).get(ScanHistoryViewModel::class.java)
+        
         // Инициализируем клиент Gemini API
         geminiApiClient = GeminiApiClient(getString(R.string.gemini_api_key))
 

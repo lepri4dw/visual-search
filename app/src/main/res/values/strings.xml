@@ -52,4 +52,10 @@
     <string name="delete_scan_confirmation">Are you sure you want to delete this scan?</string>
     <string name="delete">Delete</string>
     <string name="search_icon">Поиск</string>
+    
+    <!-- Авторизация и История -->
+    <string name="empty_history">У вас пока нет истории сканирований</string>
+    <string name="login_to_save_history">Войдите в аккаунт, чтобы сохранять историю сканирований</string>
+    <string name="login">Войти</string>
+    <string name="start_scanning">Начать сканирование</string>
 </resources>

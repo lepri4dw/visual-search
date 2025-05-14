@@ -42,7 +42,18 @@
         tools:layout="@layout/fragment_scan_history">
         <action
             android:id="@+id/action_navigation_history_to_scan_detail"
-            app:destination="@id/navigation_scan_detail" />
+            app:destination="@id/navigation_scan_detail"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_history_to_login"
+            app:destination="@id/loginFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -52,7 +63,7 @@
         tools:layout="@layout/fragment_scan_detail">
         <argument
             android:name="scanId"
-            app:argType="long" />
+            app:argType="string" />
         <action
             android:id="@+id/action_scan_detail_to_navigation_home"
             app:destination="@id/navigation_home" />
@@ -75,8 +86,9 @@
         <action
             android:id="@+id/action_profile_redirect_unauthenticated_to_login"
             app:destination="@id/loginFragment"
-            app:popUpTo="@id/navigation_profile"
-            app:popUpToInclusive="true" />
+            app:popUpTo="@id/mobile_navigation" 
+            app:popUpToInclusive="false"
+            app:launchSingleTop="true" />
 
     </fragment>
 

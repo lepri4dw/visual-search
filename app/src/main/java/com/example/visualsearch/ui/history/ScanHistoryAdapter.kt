@@ -1,6 +1,7 @@
 package com.example.visualsearch.ui.history
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,9 +25,15 @@ class ScanHistoryAdapter(
     private val onItemClick: (ScanHistoryEntity) -> Unit
 ) : ListAdapter<ScanHistoryEntity, ScanHistoryAdapter.ScanViewHolder>(ScanDiffCallback()) {
 
+    private val TAG = "ScanHistoryAdapter"
     private var lastAnimatedPosition = -1
 
+    init {
+        Log.d(TAG, "Адаптер инициализирован")
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScanViewHolder {
+        Log.d(TAG, "onCreateViewHolder вызван")
         val binding = ItemScanHistoryBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
@@ -37,6 +44,7 @@ class ScanHistoryAdapter(
 
     override fun onBindViewHolder(holder: ScanViewHolder, position: Int) {
         val scan = getItem(position)
+        Log.d(TAG, "onBindViewHolder: позиция $position, id: ${scan.id}, запрос: ${scan.query}")
         holder.bind(scan)
         
         // Применяем анимацию к элементам при прокрутке
@@ -53,13 +61,22 @@ class ScanHistoryAdapter(
         holder.itemView.clearAnimation()
     }
 
+    override fun submitList(list: List<ScanHistoryEntity>?) {
+        Log.d(TAG, "submitList: получено ${list?.size ?: 0} элементов")
+        list?.forEach { item ->
+            Log.d(TAG, "Элемент: id=${item.id}, запрос=${item.query}, imagePath=${item.imagePath}")
+        }
+        super.submitList(list?.toList()) // Создаем копию списка для безопасности
+    }
+
     inner class ScanViewHolder(private val binding: ItemScanHistoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         init {
             binding.root.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
+                // Безопасное использование позиции
+                val currentPosition = adapterPosition
+                if (currentPosition != RecyclerView.NO_POSITION) {
                     // Добавляем эффект нажатия
                     binding.root.animate()
                         .setDuration(150)
@@ -72,8 +89,11 @@ class ScanHistoryAdapter(
                                 .scaleY(1f)
                                 .start()
                             
-                            // Вызываем обработчик после анимации
-                            onItemClick(getItem(position))
+                            // Вызываем обработчик после анимации и снова проверяем позицию
+                            val finalPosition = adapterPosition
+                            if (finalPosition != RecyclerView.NO_POSITION) {
+                                onItemClick(getItem(finalPosition))
+                            }
                         }
                         .start()
                 }
@@ -81,39 +101,68 @@ class ScanHistoryAdapter(
         }
 
         fun bind(scan: ScanHistoryEntity) {
-            // Загружаем изображение с улучшенным форматированием
-            val imageFile = File(scan.imagePath)
-            if (imageFile.exists()) {
-                Glide.with(context)
-                    .load(imageFile)
-                    .apply(RequestOptions().transform(CenterCrop()))
-                    .into(binding.imageViewScanThumbnail)
-            }
+            try {
+                // Загружаем изображение с Firebase Storage или локального хранилища
+                val imagePath = scan.imagePath
+                Log.d(TAG, "Загружаем изображение: $imagePath")
+                
+                // Проверяем, является ли путь URL-адресом (Firebase Storage)
+                if (imagePath.startsWith("https://")) {
+                    // Загружаем изображение из Firebase Storage
+                    Log.d(TAG, "Загружаем изображение из Firebase Storage")
+                    Glide.with(context)
+                        .load(imagePath)
+                        .apply(RequestOptions()
+                            .transform(CenterCrop())
+                            .placeholder(R.drawable.ic_image_placeholder))
+                        .into(binding.imageViewScanThumbnail)
+                } else {
+                    // Загружаем локальное изображение
+                    val imageFile = File(imagePath)
+                    if (imageFile.exists()) {
+                        Log.d(TAG, "Загружаем локальное изображение")
+                        Glide.with(context)
+                            .load(imageFile)
+                            .apply(RequestOptions().transform(CenterCrop()))
+                            .into(binding.imageViewScanThumbnail)
+                    } else {
+                        Log.d(TAG, "Файл не существует, показываем заглушку")
+                        // Если файл не существует, показываем заглушку
+                        Glide.with(context)
+                            .load(R.drawable.ic_image_placeholder)
+                            .into(binding.imageViewScanThumbnail)
+                    }
+                }
 
-            // Устанавливаем информацию о сканировании
-            binding.textViewProductType.text = scan.productType.ifEmpty { "Товар" }
-            binding.textViewQuery.text = scan.query
+                // Устанавливаем информацию о сканировании
+                binding.textViewProductType.text = scan.productType.ifEmpty { "Товар" }
+                binding.textViewQuery.text = scan.query
 
-            // Форматируем и отображаем дату
-            val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-            binding.textViewDate.text = dateFormat.format(scan.scanDate)
-            
-            // Добавляем дополнительную информацию, если она доступна
-            val brandInfo = if (scan.brand.isNotEmpty()) {
-                " • ${scan.brand}"
-            } else {
-                ""
-            }
-            
-            val colorInfo = if (scan.color.isNotEmpty()) {
-                " • ${scan.color}"
-            } else {
-                ""
-            }
-            
-            // Если есть дополнительная информация, добавляем её к основному запросу
-            if (brandInfo.isNotEmpty() || colorInfo.isNotEmpty()) {
-                binding.textViewQuery.text = "${scan.query}$brandInfo$colorInfo"
+                // Форматируем и отображаем дату
+                val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+                binding.textViewDate.text = dateFormat.format(scan.getDateAsJavaDate())
+                
+                // Добавляем дополнительную информацию, если она доступна
+                val brandInfo = if (scan.brand.isNotEmpty()) {
+                    " • ${scan.brand}"
+                } else {
+                    ""
+                }
+                
+                val colorInfo = if (scan.color.isNotEmpty()) {
+                    " • ${scan.color}"
+                } else {
+                    ""
+                }
+                
+                // Если есть дополнительная информация, добавляем её к основному запросу
+                if (brandInfo.isNotEmpty() || colorInfo.isNotEmpty()) {
+                    binding.textViewQuery.text = "${scan.query}$brandInfo$colorInfo"
+                }
+                
+                Log.d(TAG, "Привязка выполнена успешно")
+            } catch (e: Exception) {
+                Log.e(TAG, "Ошибка при привязке данных", e)
             }
         }
     }

@@ -14,11 +14,11 @@ class HomeViewModel : ViewModel() {
     val text: LiveData<String> = _text
     
     // Для хранения данных из истории сканирования
-    private val _currentSearchQuery = MutableLiveData<SearchQuery>()
-    val currentSearchQuery: LiveData<SearchQuery> = _currentSearchQuery
+    private val _currentSearchQuery = MutableLiveData<SearchQuery?>()
+    val currentSearchQuery: LiveData<SearchQuery?> = _currentSearchQuery
     
-    private val _currentBitmap = MutableLiveData<Bitmap>()
-    val currentBitmap: LiveData<Bitmap> = _currentBitmap
+    private val _currentBitmap = MutableLiveData<Bitmap?>()
+    val currentBitmap: LiveData<Bitmap?> = _currentBitmap
     
     private val _fromHistory = MutableLiveData<Boolean>()
     val fromHistory: LiveData<Boolean> = _fromHistory

@@ -27,9 +27,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.example.visualsearch.data.AppDatabase
 import com.example.visualsearch.data.entity.ScanHistoryEntity
-import com.example.visualsearch.data.repository.ScanHistoryRepository
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,10 +56,8 @@ class ScanDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Инициализация репозитория и фабрики для ViewModel
-        val scanHistoryDao = AppDatabase.getDatabase(requireContext()).scanHistoryDao()
-        val repository = ScanHistoryRepository(scanHistoryDao)
-        val factory = ScanHistoryViewModelFactory(requireActivity().application, repository)
+        // Используем обновленную фабрику, которая сама создает FirestoreScanRepository
+        val factory = ScanHistoryViewModelFactory(requireActivity().application)
         
         // Получаем ViewModel с использованием фабрики
         viewModel = ViewModelProvider(this, factory).get(ScanHistoryViewModel::class.java)
@@ -80,12 +76,29 @@ class ScanDetailFragment : Fragment() {
         // Наблюдаем за изменениями в данных сканирования
         _selectedScan.observe(viewLifecycleOwner) { scan ->
             if (scan != null) {
-                val imageFile = File(scan.imagePath)
-                if (imageFile.exists()) {
+                // Загружаем изображение в зависимости от источника (URL или локальный файл)
+                if (scan.imagePath.startsWith("https://")) {
+                    // Загружаем из Firebase Storage
                     Glide.with(this)
-                        .load(imageFile)
+                        .load(scan.imagePath)
                         .centerCrop()
+                        .placeholder(R.drawable.ic_image_placeholder)
                         .into(binding.imageViewDetail)
+                } else {
+                    // Загружаем локальный файл
+                    val imageFile = File(scan.imagePath)
+                    if (imageFile.exists()) {
+                        Glide.with(this)
+                            .load(imageFile)
+                            .centerCrop()
+                            .into(binding.imageViewDetail)
+                    } else {
+                        // Если файл не существует, показываем заглушку
+                        Glide.with(this)
+                            .load(R.drawable.ic_image_placeholder)
+                            .centerCrop()
+                            .into(binding.imageViewDetail)
+                    }
                 }
 
                 binding.textViewDetailProductType.text = scan.productType
@@ -95,7 +108,7 @@ class ScanDetailFragment : Fragment() {
                 binding.textViewDetailColor.text = scan.color.ifEmpty { "Не определен" }
 
                 val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-                val formattedDate = scan.scanDate?.let { dateFormat.format(it) } ?: "Н/Д"
+                val formattedDate = dateFormat.format(scan.getDateAsJavaDate())
                 binding.textViewDetailDate.text = formattedDate
             }
         }

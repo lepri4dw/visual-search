@@ -1,6 +1,7 @@
 package com.example.visualsearch.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,12 +24,14 @@ class LoginFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.d("LoginFragment", "onCreateView")
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d("LoginFragment", "onViewCreated")
         
         // Инициализация ViewModel
         authViewModel = ViewModelProvider(requireActivity())[AuthViewModel::class.java]
@@ -72,6 +75,25 @@ class LoginFragment : Fragment() {
         }
     }
     
+    override fun onResume() {
+        super.onResume()
+        Log.d("LoginFragment", "onResume")
+        
+        // Сброс состояния авторизации при каждом открытии экрана
+        authViewModel.resetAuthState()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        Log.d("LoginFragment", "onPause")
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d("LoginFragment", "onDestroyView")
+        _binding = null
+    }
+    
     private fun validateInput(email: String, password: String): Boolean {
         var isValid = true
         
@@ -98,10 +120,5 @@ class LoginFragment : Fragment() {
         binding.googleSignInButton.isEnabled = !isLoading
         binding.emailInputLayout.isEnabled = !isLoading
         binding.passwordInputLayout.isEnabled = !isLoading
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

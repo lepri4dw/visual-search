@@ -1,6 +1,7 @@
 package com.example.visualsearch.ui.history
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -17,40 +18,38 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.visualsearch.MainActivity
 import com.example.visualsearch.R
-import com.example.visualsearch.data.AppDatabase
 import com.example.visualsearch.databinding.FragmentScanHistoryBinding
 import com.example.visualsearch.util.CustomToast
 import com.example.visualsearch.util.ToastType
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.example.visualsearch.data.repository.ScanHistoryRepository
 
 class ScanHistoryFragment : Fragment() {
 
+    private val TAG = "ScanHistoryFragment"
     private var _binding: FragmentScanHistoryBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var viewModel: ScanHistoryViewModel
     private lateinit var adapter: ScanHistoryAdapter
 
-    private val scanHistoryRepository by lazy {
-        val database = AppDatabase.getDatabase(requireContext()) // Получите ваш экземпляр базы данных Room
-        ScanHistoryRepository(database.scanHistoryDao())
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        Log.d(TAG, "onCreateView вызван")
         _binding = FragmentScanHistoryBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d(TAG, "onViewCreated вызван")
 
-        val viewModelFactory = ScanHistoryViewModelFactory(requireActivity().application, scanHistoryRepository)
+        // Используем обновленную фабрику, которая сама создает FirestoreScanRepository
+        val viewModelFactory = ScanHistoryViewModelFactory(requireActivity().application)
         viewModel = ViewModelProvider(this, viewModelFactory).get(ScanHistoryViewModel::class.java)
+        Log.d(TAG, "ViewModel создан")
 
         setupRecyclerView()
         setupButtons()
@@ -65,8 +64,15 @@ class ScanHistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        Log.d(TAG, "Инициализация RecyclerView")
+        
+        // Проверяем состояние авторизации
+        val isLoggedIn = viewModel.isUserLoggedIn()
+        Log.d(TAG, "Пользователь авторизован: $isLoggedIn")
+        
         adapter = ScanHistoryAdapter(requireContext()) { scanHistory ->
             // Navigate to scan detail fragment
+            Log.d(TAG, "Нажатие на элемент истории: ${scanHistory.id}")
             val action = ScanDetailFragmentArgs(scanHistory.id).toNavDirections()
             findNavController().navigate(action)
         }
@@ -74,6 +80,7 @@ class ScanHistoryFragment : Fragment() {
         binding.recyclerViewHistory.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@ScanHistoryFragment.adapter
+            Log.d(TAG, "Адаптер установлен для RecyclerView")
 
             // Добавляем анимацию при прокрутке
             postponeEnterTransition()
@@ -98,14 +105,61 @@ class ScanHistoryFragment : Fragment() {
     }
 
     private fun observeViewModel() {
+        Log.d(TAG, "Настройка наблюдателя для userScans")
+        
+        // Проверяем статус авторизации сразу
+        val loggedIn = viewModel.isUserLoggedIn()
+        val userId = if (loggedIn) viewModel.getCurrentUserId() else "не авторизован"
+        Log.d(TAG, "Статус авторизации при настройке наблюдателя: $loggedIn, userId: $userId")
+        
+        // Настраиваем отображение при запуске на основе статуса авторизации
+        if (!loggedIn) {
+            Log.d(TAG, "Пользователь не авторизован при первоначальной загрузке, показываем сообщение о входе")
+            binding.emptyStateLayout.visibility = View.VISIBLE
+            binding.recyclerViewHistory.visibility = View.GONE
+            binding.textViewEmptyHistory?.text = getString(R.string.login_to_save_history)
+            binding.buttonStartScan?.text = getString(R.string.login)
+            binding.buttonStartScan?.setOnClickListener {
+                findNavController().navigate(R.id.action_history_to_login)
+            }
+        }
+        
         viewModel.userScans.observe(viewLifecycleOwner) { scans ->
+            Log.d(TAG, "Получены данные: ${scans.size} элементов")
+            scans.forEach { scan ->
+                Log.d(TAG, "Элемент: id=${scan.id}, запрос=${scan.query}, userId=${scan.userId}")
+            }
+            
             adapter.submitList(scans)
+            Log.d(TAG, "Данные отправлены в адаптер")
 
             // Показываем пустое состояние или список
             if (scans.isEmpty()) {
+                Log.d(TAG, "Список пуст, показываем пустое состояние")
                 binding.emptyStateLayout.visibility = View.VISIBLE
                 binding.recyclerViewHistory.visibility = View.GONE
+                
+                // Проверяем, авторизован ли пользователь
+                if (!viewModel.isUserLoggedIn()) {
+                    Log.d(TAG, "Пользователь не авторизован, показываем сообщение о входе")
+                    // Если пользователь не авторизован, показываем сообщение о необходимости входа
+                    binding.textViewEmptyHistory?.text = getString(R.string.login_to_save_history)
+                    binding.buttonStartScan?.text = getString(R.string.login)
+                    binding.buttonStartScan?.setOnClickListener {
+                        findNavController().navigate(R.id.action_history_to_login)
+                    }
+                } else {
+                    Log.d(TAG, "Пользователь авторизован, но история пуста")
+                    // Если пользователь авторизован, но истории нет
+                    binding.textViewEmptyHistory?.text = getString(R.string.empty_history)
+                    binding.buttonStartScan?.text = getString(R.string.start_scanning)
+                    binding.buttonStartScan?.setOnClickListener {
+                        findNavController().navigate(R.id.navigation_home)
+                    }
+                }
+                
             } else {
+                Log.d(TAG, "Есть данные, показываем список")
                 binding.emptyStateLayout.visibility = View.GONE
                 binding.recyclerViewHistory.visibility = View.VISIBLE
 
@@ -133,12 +187,19 @@ class ScanHistoryFragment : Fragment() {
             .show()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume вызван")
+        
+        // Обновляем данные при возобновлении фрагмента
+        if (::viewModel.isInitialized) {
+            viewModel.refreshUserScans()
+        }
     }
 
-    companion object {
-        private const val TAG = "ScanHistoryFragment"
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d(TAG, "onDestroyView вызван")
+        _binding = null
     }
 }
